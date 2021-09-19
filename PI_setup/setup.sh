@@ -1,3 +1,8 @@
+echo 'Have you expanded the filesystem in the advanced options (y/n)?'
+read var
+if [[ "$var" = "n" ]]; then
+echo 'Please expand the filesystem first (sudo raspi config then advanced options)'
+else
 sudo apt-get update && sudo apt-get dist-upgrade
 sudo apt-get install -y automake libtool nano cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev libssl-dev
 sudo nano /etc/dphys-swapfile
@@ -46,3 +51,5 @@ source ~/.bashrc
 sudo apt-get install -y python-opengl
 sudo -H pip3 install pyopengl
 sudo -H pip3 install pyopengl_accelerate==3.1.3rc1
+echo 'Now please enable the OpenGL ine the advanced options (sudo raspi-config)'
+fi
