@@ -1,3 +1,5 @@
+https://github.com/acrobotic/Ai_Demos_RPi/wiki/Raspberry-Pi-4-and-Intel-RealSense-D435
+
 ## Pre-install Requirements
 * Start with updating, upgrading, and installing dependencies and tools:
 ```
