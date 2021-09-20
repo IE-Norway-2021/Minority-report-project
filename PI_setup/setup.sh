@@ -1,19 +1,5 @@
-echo 'Have you expanded the filesystem in the advanced options (y/n)?'
-read var
-if [[ "$var" = "n" ]]; then
-echo 'Please expand the filesystem first (sudo raspi config then advanced options)'
-else
 sudo apt-get update && sudo apt-get dist-upgrade
-sudo apt-get install -y automake libtool nano cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev libssl-dev
-sudo nano /etc/dphys-swapfile
-sudo /etc/init.d/dphys-swapfile restart swapon -s
-cd ~
-git clone https://github.com/IntelRealSense/librealsense.git
-cd librealsense
-sudo cp config/99-realsense-libusb.rules /etc/udev/rules.d/ 
-sudo su
-udevadm control --reload-rules && udevadm trigger
-exit
+sudo apt-get install automake libtool vim cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 source ~/.bashrc
 cd ~
