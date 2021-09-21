@@ -1,7 +1,11 @@
 declare -i A
 for ext in *; do
-for img in *;do
-A=A+1
+if [[ -d $ext ]];then
+cd $ext
+A=$A+$(ls | wc -l)
+cd ..
+fi
 done
-done
-echo $A
+echo "$A/10'000 photos"
+A=$A/100
+echo "$A% du dataset construit"
