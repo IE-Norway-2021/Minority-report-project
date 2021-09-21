@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cp -R cmake-build-debug/Images ~/Documents/Minority-report-project/Dataset
+cd cmake-build-debug/Images
+for ext in *; do
+  cp -R $ext ~/Documents/Minority-report-project/Dataset
+done
 
-for
+
 
