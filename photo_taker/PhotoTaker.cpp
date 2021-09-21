@@ -43,17 +43,11 @@ PhotoTaker::PhotoTaker() {
             mkdir(finalDir.c_str(), 0777);
         }
     }
+    // Start streaming with default recommended configuration
+    pipe.start();
 }
 
 void PhotoTaker::takePicture(int number) try {
-
-    // Declare depth colorizer for pretty visualization of depth data
-    rs2::colorizer color_map;
-
-    // Declare RealSense pipeline, encapsulating the actual device and sensors
-    rs2::pipeline pipe;
-    // Start streaming with default recommended configuration
-    pipe.start();
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     //for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
