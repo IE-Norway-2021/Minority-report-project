@@ -62,7 +62,7 @@ void PhotoTaker::takePicture(int number) try {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    strftime(buffer, 80, "%F-%T", timeinfo);
+    strftime(buffer, 80, "%F-%H%M%S", timeinfo);
 
     for (auto &&frame: pipe.wait_for_frames()) {
 
