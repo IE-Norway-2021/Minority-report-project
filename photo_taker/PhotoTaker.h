@@ -12,8 +12,7 @@
 
 class PhotoTaker {
 private:
-    unsigned int fileNo = 0;
-    // Declare depth colorizer for pretty visualization of depth data
+   // Declare depth colorizer for pretty visualization of depth data
     rs2::colorizer color_map;
     // Declare RealSense pipeline, encapsulating the actual device and sensors
     rs2::pipeline pipe;
