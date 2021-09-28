@@ -6,6 +6,6 @@ A=$A+$(ls | wc -l)
 cd ..
 fi
 done
-echo "$A/10'000 photos"
-A=$A/100
+echo "$A/24'000 photos"
+A=$A/240
 echo "$A% du dataset construit"
