@@ -1,8 +1,10 @@
 
 code_test/.idea/
 
-code_test/cmake-build-debug/
-
 photo_taker/.idea/
 
+code_test/cmake-build-debug/
+
 photo_taker/cmake-build-debug/
+
+photo_taker/cmake-build-debug-remote/
