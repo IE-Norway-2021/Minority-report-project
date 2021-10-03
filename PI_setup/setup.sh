@@ -38,4 +38,3 @@ sudo apt-get install -y python-opengl
 sudo -H pip3 install pyopengl
 sudo -H pip3 install pyopengl_accelerate==3.1.3rc1
 echo 'Now please enable the OpenGL ine the advanced options (sudo raspi-config)'
-fi
