@@ -9,8 +9,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 img_height = 480
 img_width = 1488
-batch_size = 128
-folder_name = 'tbd'
+batch_size = 4
+folder_name = 'combined_image_dataset'
 
 model = keras.Sequential(
     [
@@ -62,12 +62,12 @@ def test():
         validation_split=0.1,
         subset="validation",
     )
-    ds_train = ds_train.map(augment)
+    #ds_train = ds_train.map(augment)
     # Custom Loops
-    for epochs in range(10):
-        for x, y in ds_train:
-            # train here
-            pass
+    # for epochs in range(10):
+    #     for x, y in ds_train:
+    #         # train here
+    #         pass
     model.compile(
         optimizer=keras.optimizers.Adam(),
         loss=[keras.losses.SparseCategoricalCrossentropy(from_logits=True), ],
@@ -78,4 +78,4 @@ def test():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print('PyCharm')
+    test()
