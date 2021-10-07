@@ -9,15 +9,13 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 img_height = 480
 img_width = 1488
-batch_size = 4
+batch_size = 6
 folder_name = 'combined_image_dataset'
 
 model = keras.Sequential(
     [
         layers.Conv2D(25, kernel_size=(3, 3), strides=(1, 1), padding='valid', activation='relu',
                       input_shape=(img_width, img_height, 1)),
-        layers.Conv2D(16, 3, padding="same"),
-        layers.Conv2D(32, 3, padding="same"),
         layers.MaxPooling2D(),
         layers.Flatten(),
         layers.Dense(100, input_shape=(784,), activation='relu'),
@@ -43,10 +41,10 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="grayscale",
         batch_size=batch_size,
-        image_size=(img_height, img_width),  # reshape if not in this size
+        image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
         seed=123,
-        validation_split=0.1,
+        validation_split=0.7,
         subset="training",
     )
     ds_validation = tf.keras.preprocessing.image_dataset_from_directory(
@@ -56,10 +54,10 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="grayscale",
         batch_size=batch_size,
-        image_size=(img_height, img_width),  # reshape if not in this size
+        image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
         seed=123,
-        validation_split=0.1,
+        validation_split=0.7,
         subset="validation",
     )
     #ds_train = ds_train.map(augment)
@@ -73,7 +71,7 @@ def test():
         loss=[keras.losses.SparseCategoricalCrossentropy(from_logits=True), ],
         metrics=["accuracy"],
     )
-    model.fit(ds_train, epochs=10, verbose=2)
+    model.fit(ds_train, epochs=10, verbose=1)
 
 
 # Press the green button in the gutter to run the script.
