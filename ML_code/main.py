@@ -16,6 +16,7 @@ img_height = 480
 img_width = 1488
 batch_size = 6
 folder_name = 'combined_image_dataset'
+split_value = 0.1
 
 initializer = tf.keras.initializers.HeNormal()
 
@@ -172,10 +173,10 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="rgb",
         batch_size=batch_size,
-        image_size=(img_width, img_height),  # reshape if not in this size
+        image_size=(img_height, img_width),  # reshape if not in this size
         shuffle=True,
         seed=123,
-        validation_split=0.7,
+        validation_split=split_value,
         subset="training",
     )
     ds_validation = tf.keras.preprocessing.image_dataset_from_directory(
@@ -185,10 +186,10 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="rgb",
         batch_size=batch_size,
-        image_size=(img_width, img_height),  # reshape if not in this size
+        image_size=(img_height, img_width),  # reshape if not in this size
         shuffle=True,
         seed=123,
-        validation_split=0.7,
+        validation_split=split_value,
         subset="validation",
     )
     # ds_train = ds_train.map(augment)
