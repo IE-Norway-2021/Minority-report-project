@@ -170,7 +170,7 @@ def test():
         labels="inferred",
         label_mode="int",  # categorical, binary
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-        color_mode="grayscale",
+        color_mode="rgb",
         batch_size=batch_size,
         image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
@@ -183,7 +183,7 @@ def test():
         labels="inferred",
         label_mode="int",  # categorical, binary
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-        color_mode="grayscale",
+        color_mode="rgb",
         batch_size=batch_size,
         image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
