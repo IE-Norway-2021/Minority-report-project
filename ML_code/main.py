@@ -4,19 +4,19 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import tensorflow as tf
+from tensorflow import Tensor
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.python.keras.layers import Input, Conv2D, ReLU, BatchNormalization, Add, AveragePooling2D, Flatten, \
     Dense
-from tensorflow import Tensor
 from tensorflow.python.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-img_height = 480
-img_width = 1488
-batch_size = 6
-folder_name = 'combined_image_dataset'
-split_value = 0.1
+img_height = 120
+img_width = 160
+batch_size = 4
+folder_name = 'rgb_160x120_image_dataset'
+split_value = 0.8
 
 initializer = tf.keras.initializers.HeNormal()
 
@@ -40,7 +40,7 @@ def bottleneck(x: Tensor, kernels: int, dilation: int) -> Tensor:
                padding="same", kernel_initializer=initializer)(x)
     y = relu_bn(y)
 
-    y = Conv2D(kernel_size=3,
+    y = Conv2D(kernel_size=(3, 4),
                strides=1,
                filters=int(kernels / 4),
                padding="same", kernel_initializer=initializer)(y)
@@ -60,7 +60,7 @@ def bottleneck(x: Tensor, kernels: int, dilation: int) -> Tensor:
                 padding="same", kernel_initializer=initializer)(out)
     y1 = relu_bn(y1)
 
-    y1 = Conv2D(kernel_size=3,
+    y1 = Conv2D(kernel_size=(3, 4),
                 strides=1,
                 filters=int(kernels / 4),
                 dilation_rate=dilation,
@@ -79,15 +79,15 @@ def bottleneck(x: Tensor, kernels: int, dilation: int) -> Tensor:
 
 
 def create_net():
-    inputs = Input(shape=(256, 256, 3))
+    inputs = Input(shape=(img_height, img_width, 3))
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 4),
                strides=2,
                filters=64,
                padding="valid", kernel_initializer=initializer)(inputs)
     t = relu_bn(t)
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 4),
                strides=2,
                filters=128,
                padding="valid", kernel_initializer=initializer)(t)
@@ -95,7 +95,7 @@ def create_net():
 
     t = bottleneck(t, kernels=128, dilation=2)
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 4),
                strides=2,
                filters=256,
                padding="valid", kernel_initializer=initializer)(t)
@@ -103,7 +103,7 @@ def create_net():
 
     t = bottleneck(t, kernels=256, dilation=4)
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 4),
                strides=2,
                filters=128,
                padding="valid", kernel_initializer=initializer)(t)
@@ -111,7 +111,7 @@ def create_net():
 
     t = bottleneck(t, kernels=128, dilation=8)
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 4),
                strides=2,
                filters=64,
                padding="valid", kernel_initializer=initializer)(t)
@@ -119,10 +119,10 @@ def create_net():
 
     t = bottleneck(t, kernels=64, dilation=4)
 
-    t = Conv2D(kernel_size=3,
+    t = Conv2D(kernel_size=(3, 3),
                strides=2,
                filters=16,
-               padding="valid", kernel_initializer=initializer)(t)
+               padding="same", kernel_initializer=initializer)(t)
     t = relu_bn(t)
 
     '''
@@ -173,7 +173,7 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="rgb",
         batch_size=batch_size,
-        image_size=(img_height, img_width),  # reshape if not in this size
+        image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
         seed=123,
         validation_split=split_value,
@@ -186,7 +186,7 @@ def test():
         class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         color_mode="rgb",
         batch_size=batch_size,
-        image_size=(img_height, img_width),  # reshape if not in this size
+        image_size=(img_width, img_height),  # reshape if not in this size
         shuffle=True,
         seed=123,
         validation_split=split_value,
@@ -200,7 +200,7 @@ def test():
     #         pass
     net = create_net()
 
-    net.fit(ds_train, epochs=10, verbose=1, validation_data=ds_validation)
+    net.fit(ds_train, epochs=50, verbose=1, validation_data=ds_validation)
     # evaluate model
     import pandas as pd
     import seaborn as sns
