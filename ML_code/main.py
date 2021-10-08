@@ -2,6 +2,7 @@
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -198,7 +199,34 @@ def test():
     #         pass
     net = create_net()
 
-    net.fit(ds_train, epochs=10, verbose=2, validation_data=ds_validation)
+    net.fit(ds_train, epochs=10, verbose=1, validation_data=ds_validation)
+    # evaluate model
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import numpy as np
+    y_ = net.predict(ds_train)
+    y_pred = np.argmax(tf.nn.softmax(y_), axis=1)
+
+    con_mat = tf.math.confusion_matrix(labels=ds_train, predictions=y_pred).numpy()
+
+    con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
+    classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    con_mat_df = pd.DataFrame(con_mat_norm,
+                              index=classes,
+                              columns=classes)
+
+    figure = plt.figure(figsize=(8, 8))
+    sns.heatmap(con_mat_df, annot=True, cmap=plt.cm.Blues)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show()
+
+    from sklearn.metrics import classification_report
+    print(classification_report(ds_train, y_pred))
+    from sklearn.metrics import accuracy_score
+    accuracy_score(ds_train, y_pred)
 
 
 # Press the green button in the gutter to run the script.
