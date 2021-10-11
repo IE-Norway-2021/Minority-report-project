@@ -1,22 +1,26 @@
 # Imports needed
 import os
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 import tensorflow as tf
 from tensorflow import Tensor
 from tensorflow import keras
 from tensorflow.keras import layers
+import matplotlib.pyplot as plt
+import seaborn as sns
 from tensorflow.python.keras.layers import Input, Conv2D, ReLU, BatchNormalization, Add, AveragePooling2D, Flatten, \
     Dense
 from tensorflow.python.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 img_height = 120
 img_width = 160
-batch_size = 12
-folder_name = 'rgb_160x120_image_dataset'
+batch_size = 8
+folder_name = 'rgb_image_dataset'
 split_value = 0.1
+EPOCHS = 20
+INIT_LR = 0.00001
 
 # Old model usage, redundant
 
@@ -32,7 +36,7 @@ model = keras.Sequential(
         layers.MaxPooling2D(),
         layers.BatchNormalization(),
         layers.Flatten(),
-        layers.Dense(100, activation='relu'),
+        layers.Dense(200, activation='relu'),
         layers.Dense(100, activation='relu'),
         layers.Dropout(0.4),
         layers.Dense(10, activation='softmax'),
@@ -78,12 +82,35 @@ def test():
     #         # train here
     #         pass
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
         metrics=["accuracy"],
     )
     model.summary()
-    model.fit(ds_train, epochs=50, verbose=1, validation_data=ds_validation)
+    history = model.fit(ds_train, epochs=EPOCHS, verbose=1, validation_data=ds_validation)
+
+    #analyse results and save wheight
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs_range = range(EPOCHS)
+
+    plt.figure(figsize=(15, 15))
+    plt.subplot(2, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    plt.show()
+    model.save('weights_rgb.h5')
 
 
 # Press the green button in the gutter to run the script.
