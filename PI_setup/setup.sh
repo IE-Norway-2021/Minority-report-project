@@ -1,5 +1,5 @@
 sudo apt-get update && sudo apt-get dist-upgrade
-sudo apt-get install automake libtool cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev libssl-dev
+sudo apt-get install -y automake libtool cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev libssl-dev python3 pip
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 source ~/.bashrc
 cd ~
