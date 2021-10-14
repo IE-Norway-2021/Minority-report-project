@@ -4,15 +4,11 @@ import cv2
 import os
 import datetime
 
-# Path for exported data, numpy arrays
 root_name = 'Dataset'
-# Actions that we try to detect
 format = np.array(['rgb', 'depth'])
 actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out', 'start', 'stop'])
-# Thirty videos worth of data
-no_sequences = 1
-# Videos are going to be 30 frames in length
-sequence_length = 70
+no_sequences = 20
+sequence_length = 40
 
 
 def video_taker():
@@ -54,7 +50,7 @@ def video_taker():
         if action == 'q':
             print('Quitting now...')
             return
-        if (not isinstance(action, int)) or action >= actions.size or action < 0:
+        if (not action.isdigit()) or int(action) >= actions.size or int(action) < 0:
             print('Wrong input please try again')
             continue
         action = int(action)
@@ -65,6 +61,7 @@ def video_taker():
             sequence_folder_name = now.strftime("%Y-%m-%d-%H%M%S") + '_{}'.format(sequence)
             os.makedirs(os.path.join(root_name, 'rgb', actions[action], sequence_folder_name))
             os.makedirs(os.path.join(root_name, 'depth', actions[action], sequence_folder_name))
+            input(f"Press enter to start collection {sequence + 1}")
             for frame_num in range(sequence_length):
                 frames = pipeline.wait_for_frames()
                 depth_frame = frames.get_depth_frame()
@@ -76,20 +73,11 @@ def video_taker():
                 # Convert images to numpy arrays
                 depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
                 color_image = np.asanyarray(color_frame.get_data())
-                # NEW Apply wait logic
-                if frame_num == 0:
-                    print('Starting collection\n')
-                    # Show to screen
-                    cv2.imshow('OpenCV Feed', color_image)
-                    cv2.waitKey(500)
-                else:
-                    # Show to screen
-                    cv2.imshow('OpenCV Feed', color_image)
 
                 # save image
                 cv2.imwrite(f'{root_name}/rgb/{actions[action]}/{sequence_folder_name}/{frame_num}.png', color_image)
                 cv2.imwrite(f'{root_name}/depth/{actions[action]}/{sequence_folder_name}/{frame_num}.png', depth_image)
-        cv2.destroyAllWindows()
+            print('sequence finished')
     pipeline.stop()
 
 
