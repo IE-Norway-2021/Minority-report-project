@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-root_name = 'video_dataset'
+root_name = 'Dataset'
 format = np.array(['rgb', 'depth'])
 actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out', 'start', 'stop'])
 
