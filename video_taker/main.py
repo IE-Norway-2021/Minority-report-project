@@ -6,9 +6,18 @@ import datetime
 
 root_name = 'Dataset'
 format = np.array(['rgb', 'depth'])
-actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out', 'start', 'stop'])
+actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out'])
 no_sequences = 20
 sequence_length = 40
+PERCENT = 25
+
+
+def resize_image(img):
+    width = int(img.shape[1] * PERCENT / 100)
+    height = int(img.shape[0] * PERCENT / 100)
+    dim = (width, height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+    return resized
 
 
 def video_taker():
@@ -59,9 +68,9 @@ def video_taker():
         for sequence in range(no_sequences):
             now = datetime.datetime.now()
             sequence_folder_name = now.strftime("%Y-%m-%d-%H%M%S") + '_{}'.format(sequence)
+            input(f"Press enter to start collection {sequence + 1}")
             os.makedirs(os.path.join(root_name, 'rgb', actions[action], sequence_folder_name))
             os.makedirs(os.path.join(root_name, 'depth', actions[action], sequence_folder_name))
-            input(f"Press enter to start collection {sequence + 1}")
             for frame_num in range(sequence_length):
                 frames = pipeline.wait_for_frames()
                 depth_frame = frames.get_depth_frame()
@@ -75,8 +84,10 @@ def video_taker():
                 color_image = np.asanyarray(color_frame.get_data())
 
                 # save image
-                cv2.imwrite(f'{root_name}/rgb/{actions[action]}/{sequence_folder_name}/{frame_num}.png', color_image)
-                cv2.imwrite(f'{root_name}/depth/{actions[action]}/{sequence_folder_name}/{frame_num}.png', depth_image)
+                cv2.imwrite(f'{root_name}/rgb/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
+                            resize_image(color_image))
+                cv2.imwrite(f'{root_name}/depth/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
+                            resize_image(depth_image))
             print('sequence finished')
     pipeline.stop()
 

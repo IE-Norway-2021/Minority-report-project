@@ -1,9 +1,9 @@
 import os
 import numpy as np
 
-root_name = 'Dataset'
+root_name = 'tmp'
 format = np.array(['rgb', 'depth'])
-actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out', 'start', 'stop'])
+actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out'])
 
 
 def folder_creator():
