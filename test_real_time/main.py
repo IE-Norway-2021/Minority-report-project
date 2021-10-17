@@ -8,7 +8,9 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 
 img_height = 120
 img_width = 160
+PERCENT = 25
 
+# old model_new
 model = keras.Sequential(
     [
         layers.InputLayer(input_shape=(img_width, img_height, 3)),
@@ -18,6 +20,26 @@ model = keras.Sequential(
         layers.MaxPooling2D(),
         layers.BatchNormalization(),
         layers.Conv2D(64, 3, padding="same", activation="relu"),
+        layers.MaxPooling2D(),
+        layers.BatchNormalization(),
+        layers.Flatten(),
+        layers.Dense(200, activation='relu'),
+        layers.Dense(100, activation='relu'),
+        layers.Dropout(0.4),
+        layers.Dense(10, activation='softmax'),
+    ]
+)
+
+model_new = keras.Sequential(
+    [
+        layers.Conv2D(128, kernel_size=(3, 4), input_shape=(120, 160, 3), strides=(1, 1), padding='valid',
+                      activation='relu'),
+        layers.MaxPooling2D(),
+        layers.Conv2D(64, 3, padding="same", activation="relu"),
+        layers.Conv2D(32, 3, padding="same", activation="relu"),
+        layers.MaxPooling2D(),
+        layers.BatchNormalization(),
+        layers.Conv2D(32, 3, padding="same", activation="relu"),
         layers.MaxPooling2D(),
         layers.BatchNormalization(),
         layers.Flatten(),
@@ -39,6 +61,14 @@ def prob_viz(res, actions, input_frame, colors):
         cv2.putText(output_frame, actions[num], (0, 85 + num * 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
                     cv2.LINE_AA)
     return output_frame
+
+
+def resize_image(img):
+    width = int(img.shape[1] * PERCENT / 100)
+    height = int(img.shape[0] * PERCENT / 100)
+    dim = (width, height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+    return resized
 
 
 def tester():
@@ -76,7 +106,7 @@ def tester():
 
     # Start streaming
     pipeline.start(config)
-    model.load_weights('rgb_only_weights.h5')
+    model_new.load_weights('rgb_only_weights.h5')
 
     while True:
 
@@ -91,12 +121,12 @@ def tester():
         image = np.asanyarray(color_frame.get_data())
         print(image.shape)
         # preprocess the image
-        my_image = img_to_array(color_frame.get_data())
-        my_image = my_image.reshape((1, my_image.shape[0], my_image.shape[1], my_image.shape[2]))
-        my_image = preprocess_input(my_image)
+        my_image = resize_image(img_to_array(color_frame.get_data()))
+        my_image = my_image.reshape(1, my_image.shape[0], my_image.shape[1], my_image.shape[2])
+        # my_image = preprocess_input(my_image)
 
         # make the prediction
-        res = model.predict(my_image)[0]
+        res = model_new.predict(my_image)[0]
         print(actions[np.argmax(res)])
         predictions.append(np.argmax(res))
 
