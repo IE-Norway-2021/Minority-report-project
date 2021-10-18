@@ -258,7 +258,8 @@ movements = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down',
 
 
 def video_rgb_ml():
-    root = 'test/rgb'
+    print('Starting Image loading...')
+    root = 'video_dataset/rgb'
     label_map = {label: num for num, label in enumerate(movements)}
     sequences, labels = [], []
     for movement in movements:
@@ -266,14 +267,38 @@ def video_rgb_ml():
             sequence = []
             for file_name in files:
                 img = cv2.imread(os.path.join(dirpath, file_name))
-                sequence.append(resize_image(img))
-                labels.append(label_map[movement])
+                sequence.append(img)
             if len(sequence) > 0:
                 sequences.append(sequence)
                 labels.append(label_map[movement])
+    print('Image loading done! Starting train set creation...')
     X = np.array(sequences)
     y = to_categorical(labels).astype(int)
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_value)
+    print('Train set creation done!')
+
+    model_vid = keras.Sequential(
+        [
+            layers.Conv2D(128, kernel_size=(3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1), padding='valid',
+                          activation='relu'),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.BatchNormalization(),
+            layers.Conv2D(32, 3, padding="same", activation="relu"),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dense(200, activation='relu'),
+            layers.Dense(100, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+        ]
+    )
+
+    model_vid.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
+        loss='categorical_crossentropy', metrics=["accuracy"],
+    )
+    model_vid.summary()
+    history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val))
 
 
 # Press the green button in the gutter to run the script.
