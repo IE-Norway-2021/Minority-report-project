@@ -18,7 +18,7 @@ img_height = 120
 img_width = 160
 batch_size = 12
 folder_name = 'video_test_dataset'
-split_value = 0.1
+split_value = 0.5
 EPOCHS = 30
 INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
@@ -279,16 +279,15 @@ def video_rgb_ml():
 
     model_vid = keras.Sequential(
         [
-            layers.Conv2D(128, kernel_size=(3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1), padding='valid',
+            layers.Conv2D(32, kernel_size=(3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1), padding='valid',
                           activation='relu'),
-            layers.Conv2D(64, 3, padding="same", activation="relu"),
-            layers.BatchNormalization(),
             layers.Conv2D(32, 3, padding="same", activation="relu"),
             layers.BatchNormalization(),
+            layers.Conv2D(16, 3, padding="same", activation="relu"),
+            layers.BatchNormalization(),
             layers.Flatten(),
-            layers.Dense(200, activation='relu'),
-            layers.Dense(100, activation='relu'),
             layers.Dropout(0.4),
+            layers.Dense(50, activation='relu'),
             layers.Dense(6, activation='softmax'),
         ]
     )
@@ -300,6 +299,27 @@ def video_rgb_ml():
     model_vid.summary()
     history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val))
 
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs_range = range(EPOCHS)
+
+    plt.figure(figsize=(15, 15))
+    plt.subplot(2, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    plt.show()
+    model_vid.save('video_rgb_weights.h5')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
