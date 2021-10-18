@@ -80,7 +80,6 @@ def tester():
     predictions_rgb = []
     predictions_depth = []
     threshold = 0.7
-
     # Setup pipeline
     pipeline = rs.pipeline()
     config = rs.config()
@@ -111,6 +110,7 @@ def tester():
     pipeline.start(config)
     model_rgb.load_weights('rgb_only_new_weights.h5')
     model_depth.load_weights('depth_new_weights.h5')
+    print("start detection")
 
     while True:
 
@@ -127,22 +127,37 @@ def tester():
         # preprocess the image
         rgb_image = resize_image(rgb_image)
         rgb_image = rgb_image.reshape((1, rgb_image.shape[0], rgb_image.shape[1], rgb_image.shape[2]))
-        rgb_image = preprocess_input(rgb_image)
+
+        depth_image = cv2.resize(depth_image, (640, 480), interpolation=cv2.INTER_AREA)
+        depth_image = resize_image(depth_image)
+        depth_image = depth_image.reshape((1, depth_image.shape[0], depth_image.shape[1], depth_image.shape[2]))
+
+        # rgb_image = preprocess_input(rgb_image)
 
         # make the prediction
 
         res_rgb = model_rgb.predict(rgb_image)[0]
         predictions_rgb.append(np.argmax(res_rgb))
 
+        res_depth = model_depth.predict(depth_image)[0]
+        predictions_depth.append(np.argmax(res_depth))
+
+        if np.unique(predictions_depth[-10:])[0] == np.argmax(res_depth) :
+            if res_depth[np.argmax(res_depth)] > threshold:
+                print(f'Resultat depth : {actions[np.argmax(res_depth)]}')
+
+
         # 3. Viz logic
-        if np.unique(predictions_rgb[-10:])[0] == np.argmax(res_rgb):
-            if res_rgb[np.argmax(res_rgb)] > threshold:
+        if np.unique(predictions_rgb[-10:])[0] == np.argmax(res_rgb) and np.unique(predictions_depth[-10:])[
+            0] == np.argmax(res_depth) and np.argmax(res_depth) == np.argmax(res_rgb):
+            if res_rgb[np.argmax(res_rgb)] > threshold and res_depth[np.argmax(res_depth)] > threshold:
                 print(actions[np.argmax(res_rgb)])
-                if len(sentence) > 0:
-                    if actions[np.argmax(res_rgb)] != sentence[-1]:
-                        sentence.append(actions[np.argmax(res_rgb)])
-                else:
-                    sentence.append(actions[np.argmax(res_rgb)])
+                # if len(sentence) > 0:
+                #     if actions[np.argmax(res_rgb)] != sentence[-1]:
+                #         sentence.append(actions[np.argmax(res_rgb)])
+                # else:
+                #     sentence.append(actions[np.argmax(res_rgb)])
+
 
         if len(sentence) > 5:
             sentence = sentence[-5:]
@@ -156,7 +171,7 @@ def tester():
         #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         # Show to screen
-        #cv2.imshow('OpenCV Feed', rgb_image)
+        # cv2.imshow('OpenCV Feed', rgb_image)
 
         # Break gracefully
         if cv2.waitKey(10) & 0xFF == ord('q'):
