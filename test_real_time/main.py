@@ -8,18 +8,28 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 
 img_height = 120
 img_width = 160
+
 PERCENT = 25
 
-# old model_new
-model = keras.Sequential(
+
+def resize_image(img):
+    width = int(img.shape[1] * PERCENT / 100)
+    height = int(img.shape[0] * PERCENT / 100)
+    dim = (width, height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+    return resized
+
+
+model_rgb = keras.Sequential(
     [
-        layers.InputLayer(input_shape=(img_width, img_height, 3)),
-        layers.Conv2D(25, kernel_size=(3, 4), strides=(1, 1), padding='valid', activation='relu'),
+        layers.Conv2D(128, kernel_size=(3, 4), input_shape=(120, 160, 3), strides=(1, 1), padding='valid',
+                      activation='relu'),
         layers.MaxPooling2D(),
         layers.Conv2D(64, 3, padding="same", activation="relu"),
+        layers.Conv2D(32, 3, padding="same", activation="relu"),
         layers.MaxPooling2D(),
         layers.BatchNormalization(),
-        layers.Conv2D(64, 3, padding="same", activation="relu"),
+        layers.Conv2D(32, 3, padding="same", activation="relu"),
         layers.MaxPooling2D(),
         layers.BatchNormalization(),
         layers.Flatten(),
@@ -30,7 +40,7 @@ model = keras.Sequential(
     ]
 )
 
-model_new = keras.Sequential(
+model_depth = keras.Sequential(
     [
         layers.Conv2D(128, kernel_size=(3, 4), input_shape=(120, 160, 3), strides=(1, 1), padding='valid',
                       activation='relu'),
@@ -57,26 +67,19 @@ actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 def prob_viz(res, actions, input_frame, colors):
     output_frame = input_frame.copy()
     for num, prob in enumerate(res):
-        cv2.rectangle(output_frame, (0, 60 + num * 40), (int(prob * 100), 90 + num * 40), colors[num], -1)
+        cv2.rectangle(output_frame, (0, 60 + num * 40), (int(prob * 100), 90 + num * 40), colors[0], -1)
         cv2.putText(output_frame, actions[num], (0, 85 + num * 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
                     cv2.LINE_AA)
     return output_frame
-
-
-def resize_image(img):
-    width = int(img.shape[1] * PERCENT / 100)
-    height = int(img.shape[0] * PERCENT / 100)
-    dim = (width, height)
-    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-    return resized
 
 
 def tester():
     # 1. New detection variables
     sequence = []
     sentence = []
-    predictions = []
-    threshold = 0.5
+    predictions_rgb = []
+    predictions_depth = []
+    threshold = 0.7
 
     # Setup pipeline
     pipeline = rs.pipeline()
@@ -106,7 +109,8 @@ def tester():
 
     # Start streaming
     pipeline.start(config)
-    model_new.load_weights('rgb_only_weights.h5')
+    model_rgb.load_weights('rgb_only_new_weights.h5')
+    model_depth.load_weights('depth_new_weights.h5')
 
     while True:
 
@@ -118,40 +122,41 @@ def tester():
         colorizer = rs.colorizer()
         colorizer.set_option(rs.option.color_scheme, 0)
         # Convert images to numpy arrays
-        image = np.asanyarray(color_frame.get_data())
-        print(image.shape)
+        rgb_image = np.asanyarray(color_frame.get_data())
+        depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
         # preprocess the image
-        my_image = resize_image(img_to_array(color_frame.get_data()))
-        my_image = my_image.reshape(1, my_image.shape[0], my_image.shape[1], my_image.shape[2])
-        # my_image = preprocess_input(my_image)
+        rgb_image = resize_image(rgb_image)
+        rgb_image = rgb_image.reshape((1, rgb_image.shape[0], rgb_image.shape[1], rgb_image.shape[2]))
+        rgb_image = preprocess_input(rgb_image)
 
         # make the prediction
-        res = model_new.predict(my_image)[0]
-        print(actions[np.argmax(res)])
-        predictions.append(np.argmax(res))
+
+        res_rgb = model_rgb.predict(rgb_image)[0]
+        predictions_rgb.append(np.argmax(res_rgb))
 
         # 3. Viz logic
-        if np.unique(predictions[-10:])[0] == np.argmax(res):
-            if res[np.argmax(res)] > threshold:
-
+        if np.unique(predictions_rgb[-10:])[0] == np.argmax(res_rgb):
+            if res_rgb[np.argmax(res_rgb)] > threshold:
+                print(actions[np.argmax(res_rgb)])
                 if len(sentence) > 0:
-                    if actions[np.argmax(res)] != sentence[-1]:
-                        sentence.append(actions[np.argmax(res)])
+                    if actions[np.argmax(res_rgb)] != sentence[-1]:
+                        sentence.append(actions[np.argmax(res_rgb)])
                 else:
-                    sentence.append(actions[np.argmax(res)])
+                    sentence.append(actions[np.argmax(res_rgb)])
 
         if len(sentence) > 5:
             sentence = sentence[-5:]
+            print(sentence)
 
         # Viz probabilities
-        image = prob_viz(res, actions, image, colors)
-
-        cv2.rectangle(image, (0, 0), (640, 40), (245, 117, 16), -1)
-        cv2.putText(image, ' '.join(sentence), (3, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        # image = prob_viz(res_rgb, actions, rgb_image, colors)
+        #
+        # cv2.rectangle(image, (0, 0), (640, 40), (245, 117, 16), -1)
+        # cv2.putText(image, ' '.join(sentence), (3, 30),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         # Show to screen
-        cv2.imshow('OpenCV Feed', image)
+        #cv2.imshow('OpenCV Feed', rgb_image)
 
         # Break gracefully
         if cv2.waitKey(10) & 0xFF == ord('q'):
