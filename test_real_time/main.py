@@ -8,7 +8,7 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 
 img_height = 120
 img_width = 160
-
+model = keras.models.load_model('rgb_only_new_weights.h5')
 PERCENT = 25
 
 
@@ -142,10 +142,9 @@ def tester():
         res_depth = model_depth.predict(depth_image)[0]
         predictions_depth.append(np.argmax(res_depth))
 
-        if np.unique(predictions_depth[-10:])[0] == np.argmax(res_depth) :
+        if np.unique(predictions_depth[-10:])[0] == np.argmax(res_depth):
             if res_depth[np.argmax(res_depth)] > threshold:
                 print(f'Resultat depth : {actions[np.argmax(res_depth)]}')
-
 
         # 3. Viz logic
         if np.unique(predictions_rgb[-10:])[0] == np.argmax(res_rgb) and np.unique(predictions_depth[-10:])[
@@ -157,7 +156,6 @@ def tester():
                 #         sentence.append(actions[np.argmax(res_rgb)])
                 # else:
                 #     sentence.append(actions[np.argmax(res_rgb)])
-
 
         if len(sentence) > 5:
             sentence = sentence[-5:]

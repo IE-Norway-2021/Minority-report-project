@@ -7,7 +7,7 @@ import datetime
 root_name = 'Dataset'
 format = np.array(['rgb', 'depth'])
 actions = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out'])
-no_sequences = 20
+no_sequences = 40
 sequence_length = 40
 PERCENT = 25
 
