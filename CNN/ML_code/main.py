@@ -16,10 +16,10 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 img_height = 120
 img_width = 160
-batch_size = 12
+batch_size = 4
 folder_name = 'video_test_dataset'
-split_value = 0.5
-EPOCHS = 30
+split_value = 0.1
+EPOCHS = 300
 INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 PERCENT = 25
@@ -279,15 +279,20 @@ def video_rgb_ml():
 
     model_vid = keras.Sequential(
         [
-            layers.Conv2D(32, kernel_size=(3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1), padding='valid',
+            layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1), padding='valid',
                           activation='relu'),
-            layers.Conv2D(32, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.Conv3D(16, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
             layers.BatchNormalization(),
-            layers.Conv2D(16, 3, padding="same", activation="relu"),
+            layers.Conv3D(8, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
             layers.BatchNormalization(),
             layers.Flatten(),
-            layers.Dropout(0.4),
+            layers.Dropout(0.2),
             layers.Dense(50, activation='relu'),
+            layers.Dense(20, activation='relu'),
+            layers.Dropout(0.4),
             layers.Dense(6, activation='softmax'),
         ]
     )
@@ -320,6 +325,76 @@ def video_rgb_ml():
     plt.title('Training and Validation Loss')
     plt.show()
     model_vid.save('video_rgb_weights.h5')
+
+def video_depth_ml():
+    print('Starting Image loading...')
+    root = 'video_dataset/depth'
+    label_map = {label: num for num, label in enumerate(movements)}
+    sequences, labels = [], []
+    for movement in movements:
+        for dirpath, dirnames, files in os.walk(os.path.join(root, movement)):
+            sequence = []
+            for file_name in files:
+                img = cv2.imread(os.path.join(dirpath, file_name))
+                sequence.append(img)
+            if len(sequence) > 0:
+                sequences.append(sequence)
+                labels.append(label_map[movement])
+    print('Image loading done! Starting train set creation...')
+    X = np.array(sequences)
+    y = to_categorical(labels).astype(int)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_value)
+    print('Train set creation done!')
+
+    model_vid = keras.Sequential(
+        [
+            layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1), padding='valid',
+                          activation='relu'),
+            layers.MaxPool3D(),
+            layers.Conv3D(16, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Conv3D(8, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dropout(0.2),
+            layers.Dense(50, activation='relu'),
+            layers.Dense(20, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+        ]
+    )
+
+    model_vid.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
+        loss='categorical_crossentropy', metrics=["accuracy"],
+    )
+    model_vid.summary()
+    history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val))
+
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs_range = range(EPOCHS)
+
+    plt.figure(figsize=(15, 15))
+    plt.subplot(2, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    plt.show()
+    model_vid.save('video_depth_weights.h5')
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
