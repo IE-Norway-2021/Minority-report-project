@@ -2,10 +2,11 @@ import pyrealsense2 as rs
 import numpy as np
 import cv2
 from tensorflow import keras
+from collections import Counter
 
 img_height = 120
 img_width = 160
-model = keras.models.load_model('video_rgb_weights.h5')
+sequence_length = 40
 PERCENT = 25
 
 actions = ['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out']
@@ -20,6 +21,9 @@ def resize_image(img):
 
 
 def video_tester():
+    model_rgb = keras.models.load_model('video_rgb_weights.h5')
+    model_depth = keras.models.load_model('video_depth_weights.h5')
+    print('Finished loading models')
     # Configure depth and color streams
     pipeline = rs.pipeline()
     config = rs.config()
@@ -46,11 +50,18 @@ def video_tester():
     else:
         config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
+    colorizer = rs.colorizer()
+    colorizer.set_option(rs.option.color_scheme, 0)
+
+    print('Starting streaming...')
+
     # Start streaming
     pipeline.start(config)
 
-    sequence = []
-    predictions = []
+    sequence_rgb = []
+    predictions_rgb = []
+    sequence_depth = []
+    predictions_depth = []
     threshold = 0.7
 
     try:
@@ -64,20 +75,28 @@ def video_tester():
                 continue
 
             # Convert images to numpy arrays
-            depth_image = np.asanyarray(depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
 
             color_image = resize_image(color_image)
+            depth_image = resize_image(cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
+                                                  interpolation=cv2.INTER_AREA))
 
-            sequence.append(color_image)
-            sequence = sequence[-40:]
+            sequence_rgb.append(color_image)
+            sequence_rgb = sequence_rgb[-sequence_length:]
 
-            if len(sequence) == 40:
-                res = model.predict(np.expand_dims(sequence, axis=0))[0]
-                predictions.append(np.argmax(res))
-                if np.unique(predictions[-10:])[0] == np.argmax(res):
-                    if res[np.argmax(res)] > threshold:
-                        print(actions[np.argmax(res)])
+            sequence_depth.append(depth_image)
+            sequence_depth = sequence_depth[-sequence_length:]
+
+            if len(sequence_rgb) == sequence_length and len(sequence_depth) == sequence_length:
+                res_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
+                res_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
+                predictions_rgb.append(np.argmax(res_rgb))
+                predictions_depth.append(np.argmax(res_depth))
+                if np.argmax(np.bincount(predictions_rgb[-10:])) == np.argmax(res_rgb) and np.argmax(
+                        np.bincount(predictions_depth[-10:])) == np.argmax(res_depth) and \
+                        np.argmax(res_rgb) == np.argmax(res_depth):
+                    if res_rgb[np.argmax(res_rgb)] > threshold and res_rgb[np.argmax(res_depth)] > threshold:
+                        print(actions[np.argmax(res_rgb)])
 
     finally:
         # Stop streaming
