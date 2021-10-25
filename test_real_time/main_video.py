@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 from tensorflow import keras
 from collections import Counter
+from tensorflow import keras
+from tensorflow.keras import layers
 
 img_height = 120
 img_width = 160
@@ -10,6 +12,47 @@ sequence_length = 40
 PERCENT = 25
 
 actions = ['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out']
+
+
+model_rgb = keras.Sequential(
+        [
+            layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1), padding='valid',
+                          activation='relu'),
+            layers.MaxPool3D(),
+            layers.Conv3D(16, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Conv3D(8, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dropout(0.2),
+            layers.Dense(50, activation='relu'),
+            layers.Dense(20, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+        ]
+    )
+
+model_depth = keras.Sequential(
+    [
+            layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1), padding='valid',
+                            activation='relu'),
+            layers.MaxPool3D(),
+            layers.Conv3D(16, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Conv3D(8, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dropout(0.2),
+            layers.Dense(50, activation='relu'),
+            layers.Dense(20, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+    ]
+)
 
 
 def resize_image(img):
@@ -21,8 +64,8 @@ def resize_image(img):
 
 
 def video_tester():
-    model_rgb = keras.models.load_model('video_rgb_weights.h5')
-    model_depth = keras.models.load_model('video_depth_weights.h5')
+    model_rgb.load_weights('video_rgb_weights.h5')
+    model_depth.load_weights('video_depth_weights.h5')
     print('Finished loading models')
     # Configure depth and color streams
     pipeline = rs.pipeline()
