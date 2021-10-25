@@ -2,6 +2,7 @@ sudo apt-get update && sudo apt-get dist-upgrade
 sudo apt-get install -y automake libtool cmake libusb-1.0-0-dev libx11-dev xorg-dev libglu1-mesa-dev libssl-dev python3 pip
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 source ~/.bashrc
+# install python3.7 (version for mediapipe and tensorflow)
 cd ~
 git clone --depth=1 -b v3.10.0 https://github.com/google/protobuf.git
 cd protobuf
@@ -33,6 +34,7 @@ cmake .. -DBUILD_PYTHON_BINDINGS=bool:true -DPYTHON_EXECUTABLE=$(which python3)
 make -j1
 sudo make install
 export PYTHONPATH=$PYTHONPATH:/usr/local/lib
+export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/pyrealsense2
 source ~/.bashrc
 sudo apt-get install -y python-opengl
 sudo -H pip3 install pyopengl
