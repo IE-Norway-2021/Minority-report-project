@@ -106,40 +106,48 @@ def video_tester():
     sequence_depth = []
     predictions_depth = []
     threshold = 0.7
+    no_sequences = 10
 
     try:
         while True:
+            for sequence in range(no_sequences):
+                input(f"Press enter to start collection {sequence + 1}")
+                # Wait for a coherent pair of frames: depth and color
+                while True:
+                    frames = pipeline.wait_for_frames()
+                    depth_frame = frames.get_depth_frame()
+                    color_frame = frames.get_color_frame()
+                    if not depth_frame or not color_frame:
+                        continue
 
-            # Wait for a coherent pair of frames: depth and color
-            frames = pipeline.wait_for_frames()
-            depth_frame = frames.get_depth_frame()
-            color_frame = frames.get_color_frame()
-            if not depth_frame or not color_frame:
-                continue
+                    # Convert images to numpy arrays
+                    color_image = np.asanyarray(color_frame.get_data())
 
-            # Convert images to numpy arrays
-            color_image = np.asanyarray(color_frame.get_data())
+                    color_image = resize_image(color_image)
+                    depth_image = resize_image(cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
+                                                          interpolation=cv2.INTER_AREA))
 
-            color_image = resize_image(color_image)
-            depth_image = resize_image(cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
-                                                  interpolation=cv2.INTER_AREA))
+                    sequence_rgb.append(color_image)
+                    sequence_rgb = sequence_rgb[-sequence_length:]
 
-            sequence_rgb.append(color_image)
-            sequence_rgb = sequence_rgb[-sequence_length:]
+                    sequence_depth.append(depth_image)
+                    sequence_depth = sequence_depth[-sequence_length:]
 
-            sequence_depth.append(depth_image)
-            sequence_depth = sequence_depth[-sequence_length:]
+                    if len(sequence_rgb) == sequence_length and len(sequence_depth) == sequence_length:
+                        res_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
+                        res_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
+                        predictions_rgb.append(np.argmax(res_rgb))
+                        predictions_depth.append(np.argmax(res_depth))
+                        if np.argmax(np.bincount(predictions_rgb[-10:])) == np.argmax(res_rgb) and np.argmax(
+                                np.bincount(predictions_depth[-10:])) == np.argmax(res_depth) and \
+                                np.argmax(res_rgb) == np.argmax(res_depth):
+                            if res_rgb[np.argmax(res_rgb)] > threshold and res_rgb[np.argmax(res_depth)] > threshold:
+                                print(actions[np.argmax(res_rgb)])
+                        print(f"Prediction rgb : {actions[np.argmax(res_rgb)]}, prediction depth : {actions[np.argmax(res_depth)]}")
+                        sequence_depth = []
+                        sequence_rgb = []
+                        break
 
-            if len(sequence_rgb) == sequence_length and len(sequence_depth) == sequence_length:
-                res_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
-                res_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
-                predictions_rgb.append(np.argmax(res_rgb))
-                predictions_depth.append(np.argmax(res_depth))
-                if np.argmax(np.bincount(predictions_rgb[-10:])) == np.argmax(res_rgb) and np.argmax(
-                        np.bincount(predictions_depth[-10:])) == np.argmax(res_depth) and \
-                        np.argmax(res_rgb) == np.argmax(res_depth):
-                    if res_rgb[np.argmax(res_rgb)] > threshold and res_rgb[np.argmax(res_depth)] > threshold:
-                        print(actions[np.argmax(res_rgb)])
 
     finally:
         # Stop streaming
