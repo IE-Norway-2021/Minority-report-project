@@ -36,6 +36,9 @@ sudo make install
 export PYTHONPATH=$PYTHONPATH:/usr/local/lib
 export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/pyrealsense2
 source ~/.bashrc
+
+pip3 install tensorflow opencv-python matplotlib numpy sklearn pillow pyrealsense2 
+
 sudo apt-get install -y python-opengl
 sudo -H pip3 install pyopengl
 sudo -H pip3 install pyopengl_accelerate==3.1.3rc1
