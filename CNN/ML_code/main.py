@@ -34,27 +34,6 @@ def resize_image(img):
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
     return resized
 
-
-model = keras.Sequential(
-    [
-        layers.Conv2D(128, kernel_size=(3, 4), input_shape=(img_width, img_height, 3), strides=(1, 1), padding='valid',
-                      activation='relu'),
-        layers.MaxPooling2D(),
-        layers.Conv2D(64, 3, padding="same", activation="relu"),
-        layers.MaxPooling2D(),
-        layers.BatchNormalization(),
-        layers.Conv2D(64, 3, padding="same", activation="relu"),
-        layers.MaxPooling2D(),
-        layers.BatchNormalization(),
-        layers.Flatten(),
-        layers.Dense(200, activation='relu'),
-        layers.Dense(100, activation='relu'),
-        layers.Dropout(0.4),
-        layers.Dense(10, activation='softmax'),
-    ]
-)
-
-
 #                      METHOD 1
 # ==================================================== #
 #             Using dataset_from_directory             #
@@ -92,6 +71,27 @@ def test():
     #     for x, y in ds_train:
     #         # train here
     #         pass
+
+    model = keras.Sequential(
+        [
+            layers.Conv2D(128, kernel_size=(3, 4), input_shape=(img_width, img_height, 3), strides=(1, 1),
+                          padding='valid',
+                          activation='relu'),
+            layers.MaxPooling2D(),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.MaxPooling2D(),
+            layers.BatchNormalization(),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.MaxPooling2D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dense(200, activation='relu'),
+            layers.Dense(100, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(10, activation='softmax'),
+        ]
+    )
+
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
@@ -400,11 +400,11 @@ class Logger(object):
 if __name__ == '__main__':
     # Redirect output
     sys.stdout = Logger()
-    print('Doing rgb reduced training...')
-    video_rgb_reduced_ml()
     print('Doing rgb training...')
     video_rgb_ml()
     print('Doing depth training...')
     video_depth_ml()
+    print('Doing rgb reduced training...')
+    video_rgb_reduced_ml()
     print('Doing depth reduced training...')
     video_depth_reduced_ml()
