@@ -1,23 +1,27 @@
-CFLAGS = -Wall -Wextra -pedantic
-CFLAGS_ALL = $(CFLAGS)
+TOOL_PREFIX	:= arm-linux-gnueabihf
+LD= $(TOOL_PREFIX)-ld
+CC= $(TOOL_PREFIX)-gcc
+OBJCOPY= $(TOOL_PREFIX)-objcopy
 
-LDFLAGS =
-LDFLAGS_ALL = $(LDFLAGS)
+CFLAGS = -Wall -Wextra -Werror -pedantic
 
-PROGRAM = main
+FILES=main.o uinput_api.o 
+PROGRAM=main
 
-OBJS = uinput_api.o main.o
-
-.PHONY: all clean
 
 all: $(PROGRAM)
 
-%.o : %.c 
-	$(CC) $(CFLAGS_ALL) -c -o $@ $<
+$(PROGRAM): $(FILES)
+	$(CC) -g $(CFLAGS) -o $@ $^
 
-$(PROGRAM) : % : $(OBJS) 
-	$(CC) $(LDFLAGS_ALL) $(CFLAGS_ALL) -o $@ $<
+uinput_api.o : uinput_api.h
+main.o : uinput_api.h
 
-clean:
+%.o: %.c
+	$(CC) -o $@ -I. -c $< -marm
+
+
+#Clean
+clean :
+	rm -rf *.o *.bin
 	rm -f $(PROGRAM)
-	rm -f *.o
