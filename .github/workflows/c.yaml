@@ -14,16 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf swig3.0 python3.7-dev
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf swig3.0
     - name: make
       run: |
             cd Driver/uinput
             make
-    - name: make module
-      run: |
-            cd Driver/uinput
-            make module
-    - name: make distcheck
+    - name: make clean
       run: |
             cd Driver/uinput
             make clean
