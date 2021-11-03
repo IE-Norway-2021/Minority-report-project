@@ -32,3 +32,5 @@ video_taker/.idea/
 test_real_time/.idea/
 
 test_real_time/.ipynb_checkpoints/
+
+.vscode/c_cpp_properties.json
