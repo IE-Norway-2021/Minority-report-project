@@ -14,13 +14,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: |
-           sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-           ls
-           cd Driver/uinput
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
     - name: make
-      run: make
+      run: |
+            cd Driver/uinput
+            make
     - name: make module
-      run: make module
+      run: |
+            cd Driver/uinput
+            make module
     - name: make distcheck
-      run: make clean
+      run: |
+            cd Driver/uinput
+            make clean
