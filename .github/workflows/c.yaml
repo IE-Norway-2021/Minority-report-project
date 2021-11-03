@@ -17,7 +17,7 @@ jobs:
       run: |
            sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
            ls
-           cd /Driver/uinput
+           cd Driver/uinput
     - name: make
       run: make
     - name: make module
