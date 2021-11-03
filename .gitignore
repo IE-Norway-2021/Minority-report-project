@@ -34,3 +34,5 @@ test_real_time/.idea/
 test_real_time/.ipynb_checkpoints/
 
 .vscode/c_cpp_properties.json
+src/_python_module.so
+src/python_module.py

@@ -17,9 +17,13 @@ jobs:
       run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf swig3.0
     - name: make
       run: |
-            cd Driver/uinput
+            cd src/uinput
             make
     - name: make clean
       run: |
-            cd Driver/uinput
+            cd src/uinput
             make clean
+    - name: test
+      run: |
+            cd src/uinput
+            ./test.sh
