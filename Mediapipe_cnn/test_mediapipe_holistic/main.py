@@ -8,9 +8,9 @@ import math
 import numpy as np
 import cv2
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_holistic = mp.solutions.holistic
+mp_drawing = mp.drawing_utils
+#mp_drawing_styles = mp.drawing_styles
+mp_holistic = mp.solutions.hand
 
 DESIRED_HEIGHT = 480
 DESIRED_WIDTH = 480
