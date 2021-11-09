@@ -223,35 +223,43 @@ def main_app():
             sequence_rgb.append(color_image)
             sequence_depth.append(depth_image)
 
-            if len(sequence_rgb) == 10:
+            if len(sequence_rgb) >= 10:
+                sequence_depth = sequence_depth[-10:]
+                sequence_rgb = sequence_rgb[-10:]
                 sequence_rgb_beginning = sequence_rgb[0:3]
                 sequence_rgb_middle = sequence_rgb[3:7]
                 sequence_rgb_end = sequence_rgb[7:10]
-                sequence_depth_beginning = sequence_rgb[0:3]
-                sequence_depth_middle = sequence_rgb[3:7]
-                sequence_depth_end = sequence_rgb[7:10]
+                sequence_depth_beginning = sequence_depth[0:3]
+                sequence_depth_middle = sequence_depth[3:7]
+                sequence_depth_end = sequence_depth[7:10]
                 pred_beg_rgb = model_beggining_rgb.predict(np.expand_dims(sequence_rgb_beginning, axis=0))[0]
                 pred_mid_rgb = model_middle_rgb.predict(np.expand_dims(sequence_rgb_middle, axis=0))[0]
                 pred_end_rgb = model_end_rgb.predict(np.expand_dims(sequence_rgb_end, axis=0))[0]
                 pred_beg_depth = model_beggining_depth.predict(np.expand_dims(sequence_depth_beginning, axis=0))[0]
                 pred_mid_depth = model_middle_depth.predict(np.expand_dims(sequence_depth_middle, axis=0))[0]
                 pred_end_depth = model_end_rgb.predict(np.expand_dims(sequence_depth_end, axis=0))[0]
-
-                if (np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth)) and (
-                        np.argmax(pred_mid_rgb) == np.argmax(pred_mid_depth)) and (
-                        np.argmax(pred_end_rgb) == np.argmax(pred_end_depth)) and (
-                        np.argmax(pred_beg_rgb) == np.argmax(pred_mid_rgb)) and (
+                # if (np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth)) and (
+                #         np.argmax(pred_mid_rgb) == np.argmax(pred_mid_depth)) and (
+                #         np.argmax(pred_end_rgb) == np.argmax(pred_end_depth)) and (
+                #         np.argmax(pred_beg_rgb) == np.argmax(pred_mid_rgb)) and (
+                #         np.argmax(pred_beg_rgb) == np.argmax(pred_end_rgb)):
+                #     all_valid = True
+                #     for test_res in [pred_beg_rgb, pred_mid_rgb, pred_end_rgb, pred_beg_depth, pred_mid_depth,
+                #                      pred_end_depth]:
+                #         if test_res[np.argmax(test_res)] < threshold:
+                #             all_valid = False
+                #             break
+                #     if not all_valid:
+                #         continue
+                #     # all good, can send to driver!
+                #     print(f'all agreed it was a {actions[np.argmax(pred_beg_rgb)]}')
+                if (np.argmax(pred_beg_rgb) == np.argmax(pred_mid_rgb)) and (
                         np.argmax(pred_beg_rgb) == np.argmax(pred_end_rgb)):
-                    all_valid = True
-                    for test_res in [pred_beg_rgb, pred_mid_rgb, pred_end_rgb, pred_beg_depth, pred_mid_depth,
-                                     pred_end_depth]:
-                        if test_res[np.argmax(test_res)] < threshold:
-                            all_valid = False
-                            break
-                    if not all_valid:
-                        continue
-                    # all good, can send to driver!
-                    print(f'all agreed it was a {actions[np.argmax(pred_beg_rgb)]}')
+                    print(f'all rgb agreed it was a {actions[np.argmax(pred_beg_rgb)]}')
+                if (np.argmax(pred_beg_depth) == np.argmax(pred_mid_depth)) and (
+                        np.argmax(pred_beg_depth) == np.argmax(pred_end_depth)):
+                    print(f'all depth agreed it was a {actions[np.argmax(pred_beg_depth)]}')
+
     finally:
         pipeline.stop()
 
