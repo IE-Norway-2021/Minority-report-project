@@ -7,7 +7,7 @@ CFLAGS = -Wall -Wextra -Werror -pedantic
 
 FILES_C=main.o uinput_api.o 
 
-PROGRAM_C=main 
+PROGRAM_C=test_api 
 
 
 .PHONY: all

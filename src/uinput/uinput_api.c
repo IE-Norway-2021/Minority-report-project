@@ -77,7 +77,7 @@ int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t len
    size_t i;
 
    for (i = 0; i < length; ++i) {
-      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], 1) == -1) {
+      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], KEY_PRESSED) == -1) {
          retval = -1;
          break; /* The combination or the device is
                    somehow broken: there's no sense to
@@ -91,11 +91,11 @@ int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t len
 
    /* Try to release every pressed key, no matter what. */
    while (i--) {
-      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], 0) == -1) {
+      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], KEY_RELEASED) == -1) {
          retval = -1;
       }
    }
 
    return retval;
 }
-int uinput_emit_syn(int uinput_fd) { return uinput_emit_event(uinput_fd, EV_SYN, SYN_REPORT, 0); }
+int uinput_emit_syn(int uinput_fd) { return uinput_emit_event(uinput_fd, EV_SYN, SYN_REPORT, KEY_RELEASED); }
