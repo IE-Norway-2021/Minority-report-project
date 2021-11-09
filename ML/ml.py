@@ -22,7 +22,7 @@ img_width = 160
 batch_size = 4
 folder_name = 'video_test_dataset'
 split_value = 0.1
-EPOCHS = 250
+EPOCHS = 300
 INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 PERCENT = 25
@@ -264,10 +264,13 @@ sequence_length = 40
 
 class Dataset_type(Enum):
     Normal = 0
-    Reduced = 1
-    Reduced_beginning = 2
-    Reduced_middle = 3
-    Reduced_end = 4
+    reduced_4 = 1
+    reduced_4_beginning = 2
+    reduced_4_middle = 3
+    reduced_4_end = 4
+    reduced_2_beginning = 5
+    reduced_2_middle = 6
+    reduced_2_end = 7
 
 
 def video_ml(root, name, dataset_type=Dataset_type.Normal):
@@ -282,21 +285,33 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                     for i in range(sequence_length):
                         img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                         sequence.append(img)
-                elif dataset_type is Dataset_type.Reduced:
+                elif dataset_type is Dataset_type.reduced_4:
                     for i in range(sequence_length):
                         if i % 4 == 0:
                             img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                             sequence.append(img)
-                elif dataset_type is Dataset_type.Reduced_beginning:
+                elif dataset_type is Dataset_type.reduced_4_beginning:
                     for i in [0, 4, 8]:
                         img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                         sequence.append(img)
-                elif dataset_type is Dataset_type.Reduced_middle:
+                elif dataset_type is Dataset_type.reduced_4_middle:
                     for i in [12, 16, 20, 24]:
                         img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                         sequence.append(img)
-                elif dataset_type is Dataset_type.Reduced_end:
+                elif dataset_type is Dataset_type.reduced_4_end:
                     for i in [28, 32, 36]:
+                        img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
+                        sequence.append(img)
+                elif dataset_type is Dataset_type.reduced_2_beginning:
+                    for i in [0, 2, 4, 6, 8, 10]:
+                        img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
+                        sequence.append(img)
+                elif dataset_type is Dataset_type.reduced_2_middle:
+                    for i in [12, 14, 16, 18, 20, 22, 24, 26]:
+                        img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
+                        sequence.append(img)
+                elif dataset_type is Dataset_type.reduced_2_end:
+                    for i in [28, 30, 32, 34, 36, 38]:
                         img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                         sequence.append(img)
             if len(sequence) > 0:
@@ -329,7 +344,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.Reduced:
+    elif dataset_type is Dataset_type.reduced_4:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(10, 120, 160, 3), strides=(1, 1, 1),
@@ -351,7 +366,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.Reduced_beginning or dataset_type is Dataset_type.Reduced_end:
+    elif dataset_type is Dataset_type.reduced_4_beginning or dataset_type is Dataset_type.reduced_4_end:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(3, 120, 160, 3), strides=(1, 1, 1),
@@ -373,10 +388,54 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.Reduced_middle:
+    elif dataset_type is Dataset_type.reduced_4_middle:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(4, 120, 160, 3), strides=(1, 1, 1),
+                              padding='same',
+                              activation='relu'),
+                layers.MaxPool3D(padding="same"),
+                layers.Conv3D(32, 3, padding="same", activation="relu"),
+                layers.MaxPool3D(padding="same"),
+                layers.BatchNormalization(),
+                layers.Conv3D(16, 3, padding="same", activation="relu"),
+                layers.MaxPool3D(padding="same"),
+                layers.BatchNormalization(),
+                layers.Flatten(),
+                layers.Dropout(0.2),
+                layers.Dense(120, activation='relu'),
+                layers.Dense(60, activation='relu'),
+                layers.Dense(30, activation='relu'),
+                layers.Dropout(0.4),
+                layers.Dense(6, activation='softmax'),
+            ]
+        )
+    elif dataset_type is Dataset_type.reduced_2_beginning or dataset_type is Dataset_type.reduced_2_end:
+        model_vid = keras.Sequential(
+            [
+                layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(6, 120, 160, 3), strides=(1, 1, 1),
+                              padding='same',
+                              activation='relu'),
+                layers.MaxPool3D(padding="same"),
+                layers.Conv3D(32, 1, padding="same", activation="relu"),
+                layers.MaxPool3D(padding="same"),
+                layers.BatchNormalization(),
+                layers.Conv3D(16, 1, padding="same", activation="relu"),
+                layers.MaxPool3D(padding="same"),
+                layers.BatchNormalization(),
+                layers.Flatten(),
+                layers.Dropout(0.2),
+                layers.Dense(120, activation='relu'),
+                layers.Dense(60, activation='relu'),
+                layers.Dense(30, activation='relu'),
+                layers.Dropout(0.4),
+                layers.Dense(6, activation='softmax'),
+            ]
+        )
+    elif dataset_type is Dataset_type.reduced_2_middle:
+        model_vid = keras.Sequential(
+            [
+                layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(8, 120, 160, 3), strides=(1, 1, 1),
                               padding='same',
                               activation='relu'),
                 layers.MaxPool3D(padding="same"),
@@ -441,36 +500,60 @@ def video_depth_ml():
     video_ml('video_dataset/depth', 'video_depth')
 
 
-def video_rgb_reduced_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced', dataset_type=Dataset_type.Reduced)
+def video_rgb_reduced_4_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.reduced_4)
 
 
-def video_depth_reduced_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced', dataset_type=Dataset_type.Reduced)
+def video_depth_reduced_4_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.reduced_4)
 
 
-def video_rgb_reduced_beginning_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_beginning', dataset_type=Dataset_type.Reduced_beginning)
+def video_rgb_reduced_4_beginning_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
 
 
-def video_depth_reduced_beginning_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_beginning', dataset_type=Dataset_type.Reduced_beginning)
+def video_depth_reduced_4_beginning_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
 
 
-def video_rgb_reduced_middle_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_middle', dataset_type=Dataset_type.Reduced_middle)
+def video_rgb_reduced_4_middle_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
 
 
-def video_depth_reduced_middle_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_middle', dataset_type=Dataset_type.Reduced_middle)
+def video_depth_reduced_4_middle_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
 
 
-def video_rgb_reduced_end_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_end', dataset_type=Dataset_type.Reduced_end)
+def video_rgb_reduced_4_end_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
 
 
-def video_depth_reduced_end_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_end', dataset_type=Dataset_type.Reduced_end)
+def video_depth_reduced_4_end_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
+
+
+def video_rgb_reduced_2_beginning_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
+
+
+def video_depth_reduced_2_beginning_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
+
+
+def video_rgb_reduced_2_middle_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
+
+
+def video_depth_reduced_2_middle_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
+
+
+def video_rgb_reduced_2_end_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
+
+
+def video_depth_reduced_2_end_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
 
 
 def train_normal():
@@ -480,29 +563,45 @@ def train_normal():
     video_depth_ml()
 
 
-def train_reduced():
-    print('Doing rgb reduced training...')
-    video_rgb_reduced_ml()
-    print('Doing depth reduced training...')
-    video_depth_reduced_ml()
+def train_reduced_4():
+    print('Doing rgb reduced_4 training...')
+    video_rgb_reduced_4_ml()
+    print('Doing depth reduced_4 training...')
+    video_depth_reduced_4_ml()
 
 
-def train_reduced_beg_mid_end():
-    print('Doing rgb reduced beginning training...')
-    video_rgb_reduced_beginning_ml()
-    print('Doing depth reduced beginning training...')
-    video_depth_reduced_beginning_ml()
-    print('Doing rgb reduced middle training...')
-    video_rgb_reduced_middle_ml()
-    print('Doing depth reduced middle training...')
-    video_depth_reduced_middle_ml()
-    print('Doing rgb reduced end training...')
-    video_rgb_reduced_end_ml()
-    print('Doing depth reduced end training...')
-    video_depth_reduced_end_ml()
+def train_reduced_4_beg_mid_end():
+    print('Doing rgb reduced_4 beginning training...')
+    video_rgb_reduced_4_beginning_ml()
+    print('Doing depth reduced_4 beginning training...')
+    video_depth_reduced_4_beginning_ml()
+    print('Doing rgb reduced_4 middle training...')
+    video_rgb_reduced_4_middle_ml()
+    print('Doing depth reduced_4 middle training...')
+    video_depth_reduced_4_middle_ml()
+    print('Doing rgb reduced_4 end training...')
+    video_rgb_reduced_4_end_ml()
+    print('Doing depth reduced_4 end training...')
+    video_depth_reduced_4_end_ml()
+
+
+def train_reduced_2_beg_mid_end():
+    print('Doing rgb reduced_2 beginning training...')
+    video_rgb_reduced_2_beginning_ml()
+    print('Doing depth reduced_2 beginning training...')
+    video_depth_reduced_2_beginning_ml()
+    print('Doing rgb reduced_2 middle training...')
+    video_rgb_reduced_2_middle_ml()
+    print('Doing depth reduced_2 middle training...')
+    video_depth_reduced_2_middle_ml()
+    print('Doing rgb reduced_2 end training...')
+    video_rgb_reduced_2_end_ml()
+    print('Doing depth reduced_2 end training...')
+    video_depth_reduced_2_end_ml()
 
 
 if __name__ == '__main__':
+    train_reduced_2_beg_mid_end()
     train_normal()
-    train_reduced()
-    train_reduced_beg_mid_end()
+    train_reduced_4()
+    train_reduced_4_beg_mid_end()
