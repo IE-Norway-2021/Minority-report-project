@@ -42,11 +42,8 @@ int uinput_enable_event(int uinput_fd, uint16_t event_code) {
    return ioctl(uinput_fd, UI_SET_KEYBIT, event_code);
 }
 
-int uinput_create_device(int uinput_fd, const struct uinput_user_dev *user_dev_p) {
-   size_t bytes;
-
-   bytes = write(uinput_fd, user_dev_p, sizeof(struct uinput_user_dev));
-   if (bytes != sizeof(struct uinput_user_dev)) {
+int uinput_create_device(int uinput_fd, struct uinput_setup *usetup) {
+   if (ioctl(uinput_fd, UI_DEV_SETUP, &usetup) == -1) {
       return -1;
    }
 
@@ -56,6 +53,7 @@ int uinput_create_device(int uinput_fd, const struct uinput_user_dev *user_dev_p
 
    return 0;
 }
+
 int uinput_emit_event(int uinput_fd, uint16_t event_type, uint16_t event_code, int32_t eventvalue) {
    struct input_event event;
 

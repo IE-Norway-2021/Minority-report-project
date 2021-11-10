@@ -25,7 +25,7 @@ int uinput_close(int fd);
 // Enable un event spécifique (uniquement un event du keyboard). Retourne -1 si erreur
 int uinput_enable_event(int uinput_fd, uint16_t event_code);
 // Crée un device avec le pointeur passé en param
-int uinput_create_device(int uinput_fd, const struct uinput_user_dev *user_dev_p);
+int uinput_create_device(int uinput_fd, struct uinput_setup *usetup);
 // Emet un event, renvoie -1 si erreur
 int uinput_emit_event(int uinput_fd, uint16_t event_type, uint16_t event_code, int32_t eventvalue);
 // Emet une succéssion d'events. Renvoie -1 si erreur

@@ -11,6 +11,8 @@
 
 #include "uinput_api.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Nombre d'erreurs rencontrées pendant l'exécution du programme. S'il est >0, main retournera 1
@@ -32,9 +34,8 @@ int main(int argc, char const *argv[]) {
    test_uinput_open_close();
    test_uinput_enable_event();
    test_uinput_create_device();
-   test_uinput_emit_event();
+   test_uinput_emit_event_syn();
    test_uinput_emit_event_combo();
-   test_uinput_emit_syn();
 
    if (error_nb > 0) {
       printf("There were %d error!\n", error_nb);
@@ -90,7 +91,44 @@ void test_uinput_enable_event() {
       ++error_nb;
    }
 }
-void test_uinput_create_device() {}
-void test_uinput_emit_event() {}
+void test_uinput_create_device() {
+   int fd = uinput_open();
+   if (fd == -1) {
+      printf("test_uinput_create_device : Error while opening fd\n");
+      ++error_nb;
+      return;
+   }
+
+   for (int i = 0; i < NUMBER_OF_EVENTS_HANDLED; ++i) {
+      int res = uinput_enable_event(fd, EVENT_TAB[i]);
+      if (res == -1) {
+         printf("test_uinput_create_device : Error while opening event %d, at position %d\n", EVENT_TAB[i], i);
+         ++error_nb;
+         return;
+      }
+   }
+
+   struct uinput_setup usetup;
+   memset(&usetup, 0, sizeof(usetup));
+   usetup.id.bustype = BUS_VIRTUAL;
+   usetup.id.vendor = 0x1234;  /* sample vendor */
+   usetup.id.product = 0x5678; /* sample product */
+   usetup.id.version = 0x1;
+   strcpy(usetup.name, "Example device");
+
+   int res = uinput_create_device(fd, &usetup);
+   if (res == -1) {
+      printf("test_uinput_create_device : Error while creating device\n");
+      ++error_nb;
+      return;
+   }
+
+   res = uinput_close(fd);
+   if (res == -1) {
+      printf("test_uinput_enable_event : Error while closing fd\n");
+      ++error_nb;
+   }
+}
+
+void test_uinput_emit_event_syn() {}
 void test_uinput_emit_event_combo() {}
-void test_uinput_emit_syn() {}
