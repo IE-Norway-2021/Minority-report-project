@@ -271,6 +271,7 @@ class Dataset_type(Enum):
     reduced_2_beginning = 5
     reduced_2_middle = 6
     reduced_2_end = 7
+    full_beginning = 8
 
 
 def video_ml(root, name, dataset_type=Dataset_type.Normal):
@@ -312,6 +313,10 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                         sequence.append(img)
                 elif dataset_type is Dataset_type.reduced_2_end:
                     for i in [28, 30, 32, 34, 36, 38]:
+                        img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
+                        sequence.append(img)
+                elif dataset_type is Dataset_type.full_beginning:
+                    for i in [0, 1, 2, 3, 4, 5]:
                         img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                         sequence.append(img)
             if len(sequence) > 0:
@@ -410,7 +415,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.reduced_2_beginning or dataset_type is Dataset_type.reduced_2_end:
+    elif dataset_type is Dataset_type.reduced_2_beginning or dataset_type is Dataset_type.reduced_2_end or dataset_type is Dataset_type.full_beginning:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(6, 120, 160, 3), strides=(1, 1, 1),
@@ -556,6 +561,14 @@ def video_depth_reduced_2_end_ml():
     video_ml('video_dataset/depth', 'video_depth_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
 
 
+def video_rgb_full_beginning_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_full_beginning', dataset_type=Dataset_type.full_beginning)
+
+
+def video_depth_full_beginning_ml():
+    video_ml('video_dataset/depth', 'video_depth_full_beginning', dataset_type=Dataset_type.full_beginning)
+
+
 def train_normal():
     print('Doing rgb training...')
     video_rgb_ml()
@@ -600,7 +613,15 @@ def train_reduced_2_beg_mid_end():
     video_depth_reduced_2_end_ml()
 
 
+def train_full_beginning():
+    print('Doing rgb full beginning training...')
+    video_rgb_full_beginning_ml()
+    print('Doing depth full beginning training...')
+    video_depth_full_beginning_ml()
+
+
 if __name__ == '__main__':
+    train_full_beginning()
     train_reduced_2_beg_mid_end()
     train_normal()
     train_reduced_4()
