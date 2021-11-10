@@ -50,7 +50,7 @@ int main(int argc, char const *argv[]) {
  * Error detected :
  * - user did not have access to uinput, so open did not work. Fix : give user access to uinput. Check if it is definite, otherwise find another
  *    way.
- *    Error still here after compiling, so creating a group and adding user to it, and adding /dev/uinput to that group
+ *    Error still here after compiling, so creating a group and adding user to it, and adding /dev/uinput to that group with a rule. Solution worked
  */
 void test_uinput_open_close() {
    int fd = uinput_open();

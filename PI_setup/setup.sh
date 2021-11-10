@@ -39,6 +39,8 @@ source ~/.bashrc
 
 pip3 install tensorflow opencv-python matplotlib numpy sklearn pillow pyrealsense2 
 
+sudo addgroup uinput
+sudo adduser pi uinput
 sudo cp 99-uinput.rules /etc/udev/rules.d/99-uinput.rules
 
 sudo apt-get install -y python-opengl
