@@ -608,6 +608,8 @@ def main_app_full_beginning():
     sequence_depth = []
     threshold = 0.5
     nb_of_frames = 40
+    frame_num = 0
+
 
     try:
         while True:
@@ -615,9 +617,9 @@ def main_app_full_beginning():
                 frames = pipeline.wait_for_frames()
             except RuntimeError:
                 continue
-            frame_counter = (frame_counter + 1) % 2
-            if frame_counter != 0:
-                continue
+            #frame_counter = (frame_counter + 1) % 2
+            #if frame_counter != 0:
+            #    continue
             depth_frame = frames.get_depth_frame()
             color_frame = frames.get_color_frame()
             if not depth_frame or not color_frame:
@@ -632,6 +634,12 @@ def main_app_full_beginning():
                            interpolation=cv2.INTER_AREA))
             sequence_rgb.append(color_image)
             sequence_depth.append(depth_image)
+
+            cv2.imwrite(f'capture/rgb/{frame_num}.png',
+                        color_image)
+            cv2.imwrite(f'capture/depth/{frame_num}.png',
+                        depth_image)
+            frame_num += 1
 
             if len(sequence_rgb) >= nb_of_frames:
                 sequence_depth = sequence_depth[-nb_of_frames:]
