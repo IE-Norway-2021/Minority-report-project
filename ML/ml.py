@@ -6,7 +6,6 @@ import sys
 from PIL import Image
 import tensorflow as tf
 from enum import Enum
-#from keras.engine.training_utils_v1 import unpack_validation_data
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
@@ -272,6 +271,7 @@ class Dataset_type(Enum):
     reduced_2_middle = 6
     reduced_2_end = 7
     full_beginning = 8
+    reduced_2 = 9
 
 
 def video_ml(root, name, dataset_type=Dataset_type.Normal):
@@ -289,6 +289,11 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 elif dataset_type is Dataset_type.reduced_4:
                     for i in range(sequence_length):
                         if i % 4 == 0:
+                            img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
+                            sequence.append(img)
+                elif dataset_type is Dataset_type.reduced_2:
+                    for i in range(sequence_length):
+                        if i % 2 == 0:
                             img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                             sequence.append(img)
                 elif dataset_type is Dataset_type.reduced_4_beginning:
@@ -353,6 +358,28 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(10, 120, 160, 3), strides=(1, 1, 1),
+                              padding='valid',
+                              activation='relu'),
+                layers.MaxPool3D(),
+                layers.Conv3D(32, 3, padding="same", activation="relu"),
+                layers.MaxPool3D(),
+                layers.BatchNormalization(),
+                layers.Conv3D(16, 3, padding="same", activation="relu"),
+                layers.MaxPool3D(),
+                layers.BatchNormalization(),
+                layers.Flatten(),
+                layers.Dropout(0.2),
+                layers.Dense(120, activation='relu'),
+                layers.Dense(60, activation='relu'),
+                layers.Dense(30, activation='relu'),
+                layers.Dropout(0.4),
+                layers.Dense(6, activation='softmax'),
+            ]
+        )
+    elif dataset_type is Dataset_type.reduced_2:
+        model_vid = keras.Sequential(
+            [
+                layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
                               padding='valid',
                               activation='relu'),
                 layers.MaxPool3D(),
@@ -569,6 +596,14 @@ def video_depth_full_beginning_ml():
     video_ml('video_dataset/depth', 'video_depth_full_beginning', dataset_type=Dataset_type.full_beginning)
 
 
+def video_rgb_reduced_2_ml():
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.reduced_2)
+
+
+def video_depth_reduced_2_ml():
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.reduced_2)
+
+
 def train_normal():
     print('Doing rgb training...')
     video_rgb_ml()
@@ -613,16 +648,12 @@ def train_reduced_2_beg_mid_end():
     video_depth_reduced_2_end_ml()
 
 
-def train_full_beginning():
-    print('Doing rgb full beginning training...')
-    video_rgb_full_beginning_ml()
-    print('Doing depth full beginning training...')
-    video_depth_full_beginning_ml()
+def train_reduced_2():
+    print('Doing rgb reduced_2 training...')
+    video_rgb_reduced_2_ml()
+    print('Doing depth reduced_2 training...')
+    video_depth_reduced_2_ml()
 
 
 if __name__ == '__main__':
-    train_full_beginning()
-    train_reduced_2_beg_mid_end()
-    train_normal()
-    train_reduced_4()
-    train_reduced_4_beg_mid_end()
+    train_reduced_2()
