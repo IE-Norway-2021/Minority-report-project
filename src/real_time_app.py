@@ -771,7 +771,6 @@ def main_app_reduced_2_full():
             if len(sequence_rgb) >= nb_of_frames:
                 sequence_depth = sequence_depth[-nb_of_frames:]
                 sequence_rgb = sequence_rgb[-nb_of_frames:]
-
                 pred_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
                 pred_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
                 all_valid = True
