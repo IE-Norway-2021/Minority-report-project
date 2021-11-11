@@ -1,6 +1,7 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -276,6 +277,50 @@ model_reduced_2_end_depth = keras.Sequential(
     ]
 )
 
+model_full_beginning_rgb = keras.Sequential(
+    [
+        layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(6, 120, 160, 3), strides=(1, 1, 1),
+                      padding='same',
+                      activation='relu'),
+        layers.MaxPool3D(padding="same"),
+        layers.Conv3D(32, 1, padding="same", activation="relu"),
+        layers.MaxPool3D(padding="same"),
+        layers.BatchNormalization(),
+        layers.Conv3D(16, 1, padding="same", activation="relu"),
+        layers.MaxPool3D(padding="same"),
+        layers.BatchNormalization(),
+        layers.Flatten(),
+        layers.Dropout(0.2),
+        layers.Dense(120, activation='relu'),
+        layers.Dense(60, activation='relu'),
+        layers.Dense(30, activation='relu'),
+        layers.Dropout(0.4),
+        layers.Dense(6, activation='softmax'),
+    ]
+)
+
+model_full_beginning_depth = keras.Sequential(
+    [
+        layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(6, 120, 160, 3), strides=(1, 1, 1),
+                      padding='same',
+                      activation='relu'),
+        layers.MaxPool3D(padding="same"),
+        layers.Conv3D(32, 1, padding="same", activation="relu"),
+        layers.MaxPool3D(padding="same"),
+        layers.BatchNormalization(),
+        layers.Conv3D(16, 1, padding="same", activation="relu"),
+        layers.MaxPool3D(padding="same"),
+        layers.BatchNormalization(),
+        layers.Flatten(),
+        layers.Dropout(0.2),
+        layers.Dense(120, activation='relu'),
+        layers.Dense(60, activation='relu'),
+        layers.Dense(30, activation='relu'),
+        layers.Dropout(0.4),
+        layers.Dense(6, activation='softmax'),
+    ]
+)
+
 
 def resize_image(img):
     width = int(img.shape[1] * PERCENT / 100)
@@ -520,5 +565,127 @@ def main_app_reduced_2():
         pipeline.stop()
 
 
+def main_app_full_beginning():
+    model_full_beginning_rgb.load_weights('video_rgb_full_beginning_weights.h5')
+    model_full_beginning_depth.load_weights('video_depth_full_beginning_weights.h5')
+    model_reduced_4_rgb = tf.keras.models.load_model('video_rgb_reduced_weights.h5')
+    model_reduced_4_depth = tf.keras.models.load_model('video_depth_reduced_weights.h5')
+    print('Finished loading models')
+    # Configure depth and color streams
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    # Get device product line for setting a supporting resolution
+    pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+    pipeline_profile = config.resolve(pipeline_wrapper)
+    device = pipeline_profile.get_device()
+    device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+    found_rgb = False
+    for s in device.sensors:
+        if s.get_info(rs.camera_info.name) == 'RGB Camera':
+            found_rgb = True
+            break
+    if not found_rgb:
+        print("The demo requires Depth camera with Color sensor")
+        exit(0)
+
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+
+    if device_product_line == 'L500':
+        config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
+    else:
+        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+    colorizer = rs.colorizer()
+    colorizer.set_option(rs.option.color_scheme, 0)
+
+    print('Starting streaming...')
+
+    # Start streaming
+    pipeline.start(config)
+
+    frame_counter = 0
+    sequence_rgb = []
+    sequence_depth = []
+    threshold = 0.5
+    nb_of_frames = 40
+
+    try:
+        while True:
+            try:
+                frames = pipeline.wait_for_frames()
+            except RuntimeError:
+                continue
+            frame_counter = (frame_counter + 1) % 2
+            if frame_counter != 0:
+                continue
+            depth_frame = frames.get_depth_frame()
+            color_frame = frames.get_color_frame()
+            if not depth_frame or not color_frame:
+                continue
+
+            # Convert images to numpy arrays
+            color_image = np.asanyarray(color_frame.get_data())
+
+            color_image = resize_image(color_image)
+            depth_image = resize_image(
+                cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
+                           interpolation=cv2.INTER_AREA))
+            sequence_rgb.append(color_image)
+            sequence_depth.append(depth_image)
+
+            if len(sequence_rgb) >= nb_of_frames:
+                sequence_depth = sequence_depth[-nb_of_frames:]
+                sequence_rgb = sequence_rgb[-nb_of_frames:]
+                sequence_rgb_beginning = sequence_rgb[0:6]
+                sequence_depth_beginning = sequence_depth[0:6]
+                pred_beg_rgb = model_full_beginning_rgb.predict(np.expand_dims(sequence_rgb_beginning, axis=0))[0]
+                pred_beg_depth = \
+                    model_full_beginning_depth.predict(np.expand_dims(sequence_depth_beginning, axis=0))[0]
+                # if (np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth)) and (
+                #         np.argmax(pred_mid_rgb) == np.argmax(pred_mid_depth)) and (
+                #         np.argmax(pred_end_rgb) == np.argmax(pred_end_depth)) and (
+                #         np.argmax(pred_beg_rgb) == np.argmax(pred_mid_rgb)) and (
+                #         np.argmax(pred_beg_rgb) == np.argmax(pred_end_rgb)):
+                #     all_valid = True
+                #     for test_res in [pred_beg_rgb, pred_mid_rgb, pred_end_rgb, pred_beg_depth, pred_mid_depth,
+                #                      pred_end_depth]:
+                #         if test_res[np.argmax(test_res)] < threshold:
+                #             all_valid = False
+                #             break
+                #     if not all_valid:
+                #         continue
+                #     # all good, can send to driver!
+                #     print(f'all agreed it was a {actions[np.argmax(pred_beg_rgb)]}')
+                all_valid = True
+                for test_res in [pred_beg_rgb, pred_beg_depth]:
+                    if test_res[np.argmax(test_res)] < threshold:
+                        all_valid = False
+                        break
+                if not all_valid:
+                    continue
+                if np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth):
+                    sequence_1_4_rgb = []
+                    sequence_1_4_depth = []
+                    for i in range(10):
+                        sequence_1_4_rgb.append(sequence_rgb[i*4])
+                        sequence_1_4_depth.append(sequence_depth[i * 4])
+                    pred_rgb = model_reduced_4_rgb.predict(np.expand_dims(sequence_1_4_rgb, axis=0))[0]
+                    pred_depth = model_reduced_4_depth.predict(np.expand_dims(sequence_1_4_depth, axis=0))[0]
+                    all_valid = True
+                    for test_res in [pred_rgb, pred_depth]:
+                        if test_res[np.argmax(test_res)] < threshold:
+                            all_valid = False
+                            break
+                    if not all_valid:
+                        continue
+                    if np.argmax(pred_rgb) == np.argmax(pred_depth):
+                        print(f'all be agreed it was a {actions[np.argmax(pred_rgb)]}')
+
+    finally:
+        pipeline.stop()
+
+
 if __name__ == '__main__':
-    main_app_reduced_2()
+    main_app_full_beginning()
