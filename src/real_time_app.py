@@ -607,9 +607,8 @@ def main_app_full_beginning():
     sequence_rgb = []
     sequence_depth = []
     threshold = 0.5
-    nb_of_frames = 40
+    nb_of_frames = 10
     frame_num = 0
-
 
     try:
         while True:
@@ -617,9 +616,9 @@ def main_app_full_beginning():
                 frames = pipeline.wait_for_frames()
             except RuntimeError:
                 continue
-            #frame_counter = (frame_counter + 1) % 2
-            #if frame_counter != 0:
-            #    continue
+            frame_counter = (frame_counter + 1) % 2
+            if frame_counter != 0:
+                continue
             depth_frame = frames.get_depth_frame()
             color_frame = frames.get_color_frame()
             if not depth_frame or not color_frame:
@@ -644,11 +643,11 @@ def main_app_full_beginning():
             if len(sequence_rgb) >= nb_of_frames:
                 sequence_depth = sequence_depth[-nb_of_frames:]
                 sequence_rgb = sequence_rgb[-nb_of_frames:]
-                sequence_rgb_beginning = sequence_rgb[0:6]
-                sequence_depth_beginning = sequence_depth[0:6]
-                pred_beg_rgb = model_full_beginning_rgb.predict(np.expand_dims(sequence_rgb_beginning, axis=0))[0]
-                pred_beg_depth = \
-                    model_full_beginning_depth.predict(np.expand_dims(sequence_depth_beginning, axis=0))[0]
+                # sequence_rgb_beginning = sequence_rgb[0:6]
+                # sequence_depth_beginning = sequence_depth[0:6]
+                pred_rgb = model_reduced_4_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
+                pred_depth = \
+                    model_reduced_4_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
                 # if (np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth)) and (
                 #         np.argmax(pred_mid_rgb) == np.argmax(pred_mid_depth)) and (
                 #         np.argmax(pred_end_rgb) == np.argmax(pred_end_depth)) and (
@@ -665,29 +664,16 @@ def main_app_full_beginning():
                 #     # all good, can send to driver!
                 #     print(f'all agreed it was a {actions[np.argmax(pred_beg_rgb)]}')
                 all_valid = True
-                for test_res in [pred_beg_rgb, pred_beg_depth]:
+                for test_res in [pred_rgb, pred_depth]:
                     if test_res[np.argmax(test_res)] < threshold:
                         all_valid = False
                         break
                 if not all_valid:
                     continue
-                if np.argmax(pred_beg_rgb) == np.argmax(pred_beg_depth):
-                    sequence_1_4_rgb = []
-                    sequence_1_4_depth = []
-                    for i in range(10):
-                        sequence_1_4_rgb.append(sequence_rgb[i * 4])
-                        sequence_1_4_depth.append(sequence_depth[i * 4])
-                    pred_rgb = model_reduced_4_rgb.predict(np.expand_dims(sequence_1_4_rgb, axis=0))[0]
-                    pred_depth = model_reduced_4_depth.predict(np.expand_dims(sequence_1_4_depth, axis=0))[0]
-                    all_valid = True
-                    for test_res in [pred_rgb, pred_depth]:
-                        if test_res[np.argmax(test_res)] < threshold:
-                            all_valid = False
-                            break
-                    if not all_valid:
-                        continue
-                    if np.argmax(pred_rgb) == np.argmax(pred_depth):
-                        print(f'all be agreed it was a {actions[np.argmax(pred_rgb)]}')
+                if np.argmax(pred_rgb) == np.argmax(pred_depth):
+                    print(f'all be agreed it was a {actions[np.argmax(pred_rgb)]}')
+                    sequence_rgb = sequence_rgb[-1:]
+                    sequence_depth = sequence_depth[-1:]
 
     finally:
         pipeline.stop()

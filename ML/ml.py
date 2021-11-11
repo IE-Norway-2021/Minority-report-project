@@ -6,7 +6,7 @@ import sys
 from PIL import Image
 import tensorflow as tf
 from enum import Enum
-from keras.engine.training_utils_v1 import unpack_validation_data
+#from keras.engine.training_utils_v1 import unpack_validation_data
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
