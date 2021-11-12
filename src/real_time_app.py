@@ -801,4 +801,4 @@ def main_app_reduced_2_full():
 
 
 if __name__ == '__main__':
-    main_app_reduced_4_full()
+    main_app_reduced_2_full()

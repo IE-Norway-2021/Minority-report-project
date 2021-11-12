@@ -1,10 +1,12 @@
 # Imports needed
 import os
+import gc
 
 import cv2
 import sys
 from PIL import Image
 import tensorflow as tf
+import time
 from enum import Enum
 from keras.engine.training_utils_v1 import unpack_validation_data
 from tensorflow import keras
@@ -333,6 +335,11 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
     y = to_categorical(labels).astype(int)
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_value)
     print('Train set creation done!')
+    del sequences
+    del X
+    del y
+    del labels
+    gc.collect()
 
     if dataset_type is Dataset_type.Normal:
         model_vid = keras.Sequential(
@@ -523,6 +530,11 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
     yhat = np.argmax(yhat, axis=1).tolist()
     print(multilabel_confusion_matrix(ytrue, yhat))
     np.save(f'output/{name}_confusion_matrix.npy', multilabel_confusion_matrix(ytrue, yhat))
+    del X_val
+    del X_train
+    del y_val
+    del y_train
+    gc.collect()
 
 
 def video_rgb_ml():
@@ -648,6 +660,7 @@ def train_reduced_2_beg_mid_end():
     print('Doing depth reduced_2 end training...')
     video_depth_reduced_2_end_ml()
 
+
 def train_reduced_2():
     print('Doing rgb reduced_2 training...')
     video_rgb_reduced_2_ml()
@@ -656,7 +669,4 @@ def train_reduced_2():
 
 
 if __name__ == '__main__':
-    print('Doing depth reduced_2 training...')
-    video_depth_reduced_2_ml()
-    print('Doing rgb reduced_2 training...')
-    video_rgb_reduced_2_ml()
+    train_reduced_2()
