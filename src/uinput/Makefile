@@ -14,7 +14,7 @@ PROGRAM_C=test_api
 all: $(PROGRAM_C)
 
 $(PROGRAM_C): $(FILES_C)
-	$(CC) -levdev -pthread -g $(CFLAGS) -o $@ $^
+	$(CC) -I/usr/include/libevdev-1.0/ -levdev -pthread -g $(CFLAGS) -o $@ $^
 
 uinput_api.o : uinput_api.h
 main.o : uinput_api.h
@@ -25,7 +25,7 @@ module_python:
 	./compile_module.sh
 
 %.o: %.c
-	$(CC) -levdev -pthread -o $@ -I. -c $< -marm
+	$(CC) -I/usr/include/libevdev-1.0/ -levdev -pthread -o $@ -I. -c $< -marm
 
 .PHONE: clean
 #Clean
