@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf swig3.0 libevdev-dev
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf swig3.0 libevdev-dev libevdev-tools libevdev2 libevdev-doc
     - name: make
       run: |
             cd src/uinput
