@@ -6,6 +6,7 @@ import sys
 from PIL import Image
 import tensorflow as tf
 from enum import Enum
+from keras.engine.training_utils_v1 import unpack_validation_data
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ img_width = 160
 batch_size = 4
 folder_name = 'video_test_dataset'
 split_value = 0.1
-EPOCHS = 300
+EPOCHS = 150
 INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 PERCENT = 25
@@ -391,8 +392,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.BatchNormalization(),
                 layers.Flatten(),
                 layers.Dropout(0.2),
-                layers.Dense(120, activation='relu'),
-                layers.Dense(60, activation='relu'),
+                layers.Dense(100, activation='relu'),
+                layers.Dense(50, activation='relu'),
                 layers.Dense(30, activation='relu'),
                 layers.Dropout(0.4),
                 layers.Dense(6, activation='softmax'),
@@ -647,7 +648,6 @@ def train_reduced_2_beg_mid_end():
     print('Doing depth reduced_2 end training...')
     video_depth_reduced_2_end_ml()
 
-
 def train_reduced_2():
     print('Doing rgb reduced_2 training...')
     video_rgb_reduced_2_ml()
@@ -656,4 +656,7 @@ def train_reduced_2():
 
 
 if __name__ == '__main__':
-    train_reduced_2()
+    print('Doing depth reduced_2 training...')
+    video_depth_reduced_2_ml()
+    print('Doing rgb reduced_2 training...')
+    video_rgb_reduced_2_ml()

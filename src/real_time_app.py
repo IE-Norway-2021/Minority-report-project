@@ -635,8 +635,8 @@ def main_app_reduced_4_full():
             if len(sequence_rgb) >= nb_of_frames:
                 sequence_depth = sequence_depth[-nb_of_frames:]
                 sequence_rgb = sequence_rgb[-nb_of_frames:]
-                pred_rgb = model__rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
-                pred_depth = model__depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
+                pred_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
+                pred_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
                 all_valid = True
                 for test_res in [pred_rgb, pred_depth]:
                     if test_res[np.argmax(test_res)] < threshold:
@@ -650,7 +650,11 @@ def main_app_reduced_4_full():
                         result = all(elem == last_preds[0] for elem in last_preds)
                         if result:
                             last_preds.clear()
+                            sequence_rgb = sequence_rgb[-1:]
+                            sequence_depth = sequence_depth[-1:]
                             print(f'all agreed it was a {actions[np.argmax(pred_rgb)]}')
+                        else:
+                            last_preds.clear()
 
     finally:
         pipeline.stop()
@@ -671,8 +675,8 @@ def main_app_reduced_2_full():
             layers.BatchNormalization(),
             layers.Flatten(),
             layers.Dropout(0.2),
-            layers.Dense(120, activation='relu'),
-            layers.Dense(60, activation='relu'),
+            layers.Dense(100, activation='relu'),
+            layers.Dense(50, activation='relu'),
             layers.Dense(30, activation='relu'),
             layers.Dropout(0.4),
             layers.Dense(6, activation='softmax'),
@@ -693,8 +697,8 @@ def main_app_reduced_2_full():
             layers.BatchNormalization(),
             layers.Flatten(),
             layers.Dropout(0.2),
-            layers.Dense(120, activation='relu'),
-            layers.Dense(60, activation='relu'),
+            layers.Dense(100, activation='relu'),
+            layers.Dense(50, activation='relu'),
             layers.Dense(30, activation='relu'),
             layers.Dropout(0.4),
             layers.Dense(6, activation='softmax'),
@@ -789,6 +793,8 @@ def main_app_reduced_2_full():
                             sequence_rgb = sequence_rgb[-1:]
                             sequence_depth = sequence_depth[-1:]
                             print(f'all agreed it was a {actions[np.argmax(pred_rgb)]}')
+                        else:
+                            last_preds.clear()
 
     finally:
         pipeline.stop()
