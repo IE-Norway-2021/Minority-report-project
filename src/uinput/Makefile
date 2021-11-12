@@ -2,6 +2,7 @@ TOOL_PREFIX	:= arm-linux-gnueabihf
 LD= $(TOOL_PREFIX)-ld
 CC= $(TOOL_PREFIX)-gcc
 OBJCOPY= $(TOOL_PREFIX)-objcopy
+LIBEVDEV= $(shell pkg-config --cflags --libs libevdev)
 
 CFLAGS = -Wall -Wextra -Werror -pedantic
 
@@ -14,7 +15,7 @@ PROGRAM_C=test_api
 all: $(PROGRAM_C)
 
 $(PROGRAM_C): $(FILES_C)
-	$(CC) -I/usr/include/libevdev-1.0/ -levdev -pthread -g $(CFLAGS) -o $@ $^
+	$(CC) $(LIBEVDEV) -pthread -g $(CFLAGS) -o $@ $^
 
 uinput_api.o : uinput_api.h
 main.o : uinput_api.h
@@ -25,7 +26,7 @@ module_python:
 	./compile_module.sh
 
 %.o: %.c
-	$(CC) -I/usr/include/libevdev-1.0/ -levdev -pthread -o $@ -I. -c $< -marm
+	$(CC) $(LIBEVDEV) -pthread -o $@ -I. -c $< -marm
 
 .PHONE: clean
 #Clean
