@@ -10,6 +10,7 @@
  */
 
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -37,7 +38,6 @@ int uinput_enable_event(int uinput_fd, uint16_t event_code) {
    if (ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY) == -1) {
       return -1;
    }
-   ioctl(uinput_fd, UI_SET_EVBIT, EV_REP); // explain usage
 
    return ioctl(uinput_fd, UI_SET_KEYBIT, event_code);
 }
