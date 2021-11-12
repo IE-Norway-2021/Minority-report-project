@@ -11,7 +11,7 @@
 
 #include "uinput_api.h"
 #include <fcntl.h>
-#include <libevdev-1.0/libevdev/libevdev.h>
+#include <libevdev/libevdev.h>
 #include <linux/input.h>
 #include <stdio.h>
 #include <stdlib.h>
