@@ -6,7 +6,7 @@ LIBEVDEV= $(shell pkg-config --cflags --libs libevdev)
 
 CFLAGS = -Wall -Wextra -Werror -pedantic
 
-FILES_C=main.o uinput_api.o 
+FILES_C=main_test.o uinput_api.o 
 
 PROGRAM_C=test_api 
 
@@ -34,4 +34,4 @@ clean :
 	rm -rf *.o *.bin
 	rm -f $(PROGRAM_C)
 	rm -rf python_module_wrap.c _python_module.so python_module.py ../_python_module.so ../python_module.py
-	rm -rf __pycache__
+	rm -rf __pycache__ ../__pycache__
