@@ -8,6 +8,8 @@
  * @copyright Copyright (c) 2021
  *
  */
+#ifndef EVENT_CODES_H_
+#define EVENT_CODES_H_
 
 // Scroll up/down/left/right == flèches directionnelles
 
@@ -24,3 +26,7 @@
 #define SCROLL_DOWN KEY_DOWN
 #define SCROLL_RIGHT KEY_RIGHT
 #define SCROLL_LEFT KEY_LEFT
+
+// Define number of handled events by the module and list of them for testing
+#define NUMBER_OF_EVENTS_HANDLED 6
+#endif

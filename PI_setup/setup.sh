@@ -39,7 +39,11 @@ source ~/.bashrc
 
 pip3 install tensorflow opencv-python matplotlib numpy sklearn pillow pyrealsense2 
 
+sudo addgroup uinput
+sudo adduser pi uinput
+sudo cp 99-uinput.rules /etc/udev/rules.d/99-uinput.rules
+
 sudo apt-get install -y python-opengl
 sudo -H pip3 install pyopengl
 sudo -H pip3 install pyopengl_accelerate==3.1.3rc1
-echo 'Now please enable the OpenGL ine the advanced options (sudo raspi-config)'
+echo 'Now please enable the OpenGL ine the advanced options (sudo raspi-config) and reboot the computer'

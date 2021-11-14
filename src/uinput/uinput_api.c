@@ -10,6 +10,7 @@
  */
 
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -37,16 +38,12 @@ int uinput_enable_event(int uinput_fd, uint16_t event_code) {
    if (ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY) == -1) {
       return -1;
    }
-   ioctl(uinput_fd, UI_SET_EVBIT, EV_REP); // explain usage
 
    return ioctl(uinput_fd, UI_SET_KEYBIT, event_code);
 }
 
-int uinput_create_device(int uinput_fd, const struct uinput_user_dev *user_dev_p) {
-   size_t bytes;
-
-   bytes = write(uinput_fd, user_dev_p, sizeof(struct uinput_user_dev));
-   if (bytes != sizeof(struct uinput_user_dev)) {
+int uinput_create_device(int uinput_fd, struct uinput_setup *usetup) {
+   if (ioctl(uinput_fd, UI_DEV_SETUP, &usetup) == -1) {
       return -1;
    }
 
@@ -56,6 +53,7 @@ int uinput_create_device(int uinput_fd, const struct uinput_user_dev *user_dev_p
 
    return 0;
 }
+
 int uinput_emit_event(int uinput_fd, uint16_t event_type, uint16_t event_code, int32_t eventvalue) {
    struct input_event event;
 
@@ -77,7 +75,7 @@ int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t len
    size_t i;
 
    for (i = 0; i < length; ++i) {
-      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], 1) == -1) {
+      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], KEY_PRESSED) == -1) {
          retval = -1;
          break; /* The combination or the device is
                    somehow broken: there's no sense to
@@ -91,11 +89,11 @@ int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t len
 
    /* Try to release every pressed key, no matter what. */
    while (i--) {
-      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], 0) == -1) {
+      if (uinput_emit_event(uinput_fd, EV_KEY, key_codes[i], KEY_RELEASED) == -1) {
          retval = -1;
       }
    }
 
    return retval;
 }
-int uinput_emit_syn(int uinput_fd) { return uinput_emit_event(uinput_fd, EV_SYN, SYN_REPORT, 0); }
+int uinput_emit_syn(int uinput_fd) { return uinput_emit_event(uinput_fd, EV_SYN, SYN_REPORT, KEY_RELEASED); }
