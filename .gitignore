@@ -40,3 +40,4 @@ src/python_module.py
 src/capture/
 
 src/.idea/
+.vscode/settings.json
