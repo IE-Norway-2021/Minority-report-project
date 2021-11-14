@@ -13,6 +13,10 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import multilabel_confusion_matrix
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
+import tensorflow.keras.backend as K
+from tensorflow.keras import backend
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -533,165 +537,6 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
     del y_train
     gc.collect()
 
-
-def benchmark_ml(root, rate):
-    print('Starting Image loading...')
-    label_map = {label: num for num, label in enumerate(movements)}
-    sequences, labels = [], []
-    for movement in movements:
-        for dirpath, dirnames, files in os.walk(os.path.join(root, movement)):
-            sequence = []
-            if len(files) != 0:
-                for i in range(sequence_length):
-                    if i % rate == 0:
-                        img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
-                        sequence.append(img)
-            if len(sequence) > 0:
-                sequences.append(sequence)
-                labels.append(label_map[movement])
-    print('Image loading done! Starting train set creation...')
-    X = np.array(sequences)
-    y = to_categorical(labels).astype(int)
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_value)
-    print('Train set creation done!')
-    del sequences
-    del X
-    del y
-    del labels
-    gc.collect()
-
-    # models :
-    model_densnet121 = tf.keras.applications.densenet.DenseNet121(include_top=False,
-                                                                  input_shape=(sequence_length / rate, 120, 160, 3),
-                                                                  classes=6)
-    model_densnet169 = tf.keras.applications.densenet.DenseNet169(include_top=False,
-                                                                  input_shape=(sequence_length / rate, 120, 160, 3),
-                                                                  classes=6)
-    model_densnet201 = tf.keras.applications.densenet.DenseNet201(include_top=False,
-                                                                  input_shape=(sequence_length / rate, 120, 160, 3),
-                                                                  classes=6)
-    model_inception_res_net_v2 = tf.keras.applications.inception_resnet_v2.InceptionResNetV2(include_top=False,
-                                                                                             input_shape=(
-                                                                                                 sequence_length / rate,
-                                                                                                 120, 160, 3),
-                                                                                             classes=6)
-    model_inception_v3 = tf.keras.applications.inception_v3.InceptionV3(include_top=False,
-                                                                        input_shape=(
-                                                                            sequence_length / rate,
-                                                                            120, 160, 3),
-                                                                        classes=6)
-    model_mobile_net_v2 = tf.keras.applications.mobilenet_v2.MobileNetV2(include_top=False,
-                                                                         input_shape=(
-                                                                             sequence_length / rate,
-                                                                             120, 160, 3),
-                                                                         classes=6)
-    model_mobile_net_v3_large = tf.keras.applications.MobileNetV3Large(include_top=False,
-                                                                       input_shape=(
-                                                                           sequence_length / rate,
-                                                                           120, 160, 3),
-                                                                       classes=6)
-    model_mobile_net_v3_small = tf.keras.applications.MobileNetV3Small(include_top=False,
-                                                                       input_shape=(
-                                                                           sequence_length / rate,
-                                                                           120, 160, 3),
-                                                                       classes=6)
-    model_vgg19 = tf.keras.applications.VGG19(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    model_vgg16 = tf.keras.applications.VGG16(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    model_xception = tf.keras.applications.Xception(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    model_resnet152v2 = tf.keras.applications.resnet_v2.ResNet152V2(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-    model_resnet101v2 = tf.keras.applications.resnet_v2.ResNet101V2(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    model_resnet50v2 = tf.keras.applications.resnet_v2.ResNet50V2(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    model_nastnetmobile = tf.keras.applications.NASNetMobile(
-        include_top=False,
-        input_shape=(sequence_length / rate, 120, 160, 3),
-        classes=6
-    )
-
-    benchmark_models = [(model_nastnetmobile, "model_nastnetmobile"), (model_resnet50v2, "model_resnet50v2"),
-                        (model_resnet101v2, "model_resnet101v2"),
-                        (model_resnet152v2, "model_resnet152v2"), (model_xception, "model_xception"),
-                        (model_vgg16, "model_vgg16"), (model_vgg19, "model_vgg19"),
-                        (model_mobile_net_v3_small, "model_vgg19"),
-                        (model_mobile_net_v3_large, "model_mobile_net_v3_large"),
-                        (model_mobile_net_v2, "model_mobile_net_v2"), (model_inception_v3, "model_inception_v3"),
-                        (model_inception_res_net_v2, "model_inception_res_net_v2"),
-                        (model_densnet201, "model_densnet201"), (model_densnet169, "model_densnet169"),
-                        (model_densnet121, "model_densnet121")]
-
-    for model, name in benchmark_models:
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
-            loss='categorical_crossentropy', metrics=["accuracy"],
-        )
-        with open(f'{name}_model_summary.txt', 'w') as f:
-            with redirect_stdout(f):
-                model.summary()
-        history = model.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val))
-
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
-
-        epochs_range = range(EPOCHS)
-
-        plt.figure(figsize=(15, 15))
-        plt.plot(epochs_range, acc, label='Training Accuracy')
-        plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-        plt.legend(loc='lower right')
-        plt.title('Training and Validation Accuracy')
-        plt.savefig(f'output/{name}_accuracy_results.png')
-        plt.clf()
-
-        plt.figure(figsize=(15, 15))
-        plt.plot(epochs_range, loss, label='Training Loss')
-        plt.plot(epochs_range, val_loss, label='Validation Loss')
-        plt.legend(loc='upper right')
-        plt.title('Training and Validation Loss')
-        plt.savefig(f'output/{name}_loss_results.png')
-        np.save(f'output/{name}_training_history.npy', history.history)
-        model.save(f'output/{name}_weights.h5')
-        yhat = model.predict(X_val)
-        ytrue = np.argmax(y_val, axis=1).tolist()
-        yhat = np.argmax(yhat, axis=1).tolist()
-        print(multilabel_confusion_matrix(ytrue, yhat))
-        np.save(f'output/{name}_confusion_matrix.npy', multilabel_confusion_matrix(ytrue, yhat))
-    del X_val
-    del X_train
-    del y_val
-    del y_train
-    gc.collect()
-
-
 def video_rgb_ml():
     video_ml('video_dataset/rgb', 'video_rgb')
 
@@ -823,13 +668,5 @@ def train_reduced_2():
     video_depth_reduced_2_ml()
 
 
-def train_benchmark():
-    print('Doing benchmark rgb...')
-    benchmark_ml('video_dataset/rgb', 2)
-    print('Doing benchmark depth...')
-    benchmark_ml('video_dataset/depth', 2)
-
-
 if __name__ == '__main__':
     os.mkdir("output")
-    train_benchmark()
