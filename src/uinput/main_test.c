@@ -194,8 +194,6 @@ void test_uinput_emit_event_syn() {
    // fcntl(fd, F_SETFL, FNDELAY); // Rend la lecture blocante
 
    struct input_event read_event;
-   read(fd, (void *)&read_event, sizeof(read_event));
-   uinput_emit_syn(fd);
    for (int i = 0; i < NUMBER_OF_EVENTS_HANDLED; ++i) {
 
       // Press key and syn
