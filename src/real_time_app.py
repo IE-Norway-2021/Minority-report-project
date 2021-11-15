@@ -604,9 +604,10 @@ def main_app_reduced_4_full():
     frame_counter = 0
     sequence_rgb = []
     sequence_depth = []
-    threshold = 0.5
+    threshold = 0.99999
     nb_of_frames = 10
     last_preds = []
+    validation_num = 4
 
     try:
         while True:
@@ -649,12 +650,13 @@ def main_app_reduced_4_full():
                     if len(last_preds) >= 3:
                         result = all(elem == last_preds[0] for elem in last_preds)
                         if result:
+                            print(f'Pred values : rgb={pred_rgb[np.argmax(pred_rgb)]}, depth={pred_depth[np.argmax(pred_depth)]}')
                             last_preds.clear()
                             sequence_rgb = sequence_rgb[-1:]
                             sequence_depth = sequence_depth[-1:]
                             print(f'all agreed it was a {actions[np.argmax(pred_rgb)]}')
                         else:
-                            last_preds.clear()
+                            last_preds = last_preds[-(validation_num-1):]
 
     finally:
         pipeline.stop()
@@ -744,9 +746,10 @@ def main_app_reduced_2_full():
     frame_counter = 0
     sequence_rgb = []
     sequence_depth = []
-    threshold = 0.5
+    threshold = 0.9
     nb_of_frames = 20
     last_preds = []
+    validation_num = 6
 
     try:
         while True:
@@ -786,19 +789,20 @@ def main_app_reduced_2_full():
                     continue
                 if np.argmax(pred_rgb) == np.argmax(pred_depth):
                     last_preds.append(np.argmax(pred_depth))
-                    if len(last_preds) >= 3:
+                    if len(last_preds) >= validation_num:
                         result = all(elem == last_preds[0] for elem in last_preds)
                         if result:
+                            print(f'Pred values : rgb={pred_rgb[np.argmax(pred_rgb)]}, depth={pred_depth[np.argmax(pred_depth)]}')
                             last_preds.clear()
                             sequence_rgb = sequence_rgb[-1:]
                             sequence_depth = sequence_depth[-1:]
                             print(f'all agreed it was a {actions[np.argmax(pred_rgb)]}')
                         else:
-                            last_preds.clear()
+                            last_preds = last_preds[-(validation_num-1):]
 
     finally:
         pipeline.stop()
 
 
 if __name__ == '__main__':
-    main_app_reduced_2_full()
+    main_app_reduced_4_full()
