@@ -37,7 +37,12 @@ export PYTHONPATH=$PYTHONPATH:/usr/local/lib
 export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/pyrealsense2
 source ~/.bashrc
 
-pip3 install tensorflow opencv-python matplotlib numpy sklearn pillow pyrealsense2 
+pip3 install opencv-python matplotlib numpy sklearn pillow pyrealsense2 
+
+echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install python3-tflite-runtime
 
 sudo addgroup uinput
 sudo adduser pi uinput
