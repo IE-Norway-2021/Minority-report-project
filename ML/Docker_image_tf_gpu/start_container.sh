@@ -1,0 +1,1 @@
+docker run --gpus all -it ml/gesture /bin/bash
