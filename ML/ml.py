@@ -345,14 +345,14 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
     if dataset_type is Dataset_type.Normal:
         model_vid = keras.Sequential(
             [
-                layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1),
+                layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1),
                               padding='valid',
                               activation='relu'),
                 layers.MaxPool3D(),
-                layers.Conv3D(16, 3, padding="same", activation="relu"),
+                layers.Conv3D(32, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
-                layers.Conv3D(8, 3, padding="same", activation="relu"),
+                layers.Conv3D(16, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
                 layers.Flatten(),
@@ -669,4 +669,5 @@ def train_reduced_2():
 
 
 if __name__ == '__main__':
-    os.mkdir("output")
+    os.makedirs("output", exist_ok=True)
+    train_normal()
