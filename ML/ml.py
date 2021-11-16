@@ -17,6 +17,7 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 import tensorflow.keras.backend as K
 from tensorflow.keras import backend
+from tensorflow.keras import mixed_precision
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -37,6 +38,11 @@ def resize_image(img):
     dim = (width, height)
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
     return resized
+
+
+class RemoveGarbageCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        gc.collect()
 
 
 #                      METHOD 1
@@ -345,14 +351,14 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
     if dataset_type is Dataset_type.Normal:
         model_vid = keras.Sequential(
             [
-                layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1),
+                layers.Conv3D(8, kernel_size=(3, 3, 4), input_shape=(40, 120, 160, 3), strides=(1, 1, 1),
                               padding='valid',
                               activation='relu'),
                 layers.MaxPool3D(),
-                layers.Conv3D(32, 3, padding="same", activation="relu"),
+                layers.Conv3D(16, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
-                layers.Conv3D(16, 3, padding="same", activation="relu"),
+                layers.Conv3D(8, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
                 layers.Flatten(),
@@ -451,7 +457,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.reduced_2_beginning or dataset_type is Dataset_type.reduced_2_end or dataset_type is Dataset_type.full_beginning:
+    elif dataset_type is Dataset_type.reduced_2_beginning or dataset_type is Dataset_type.reduced_2_end \
+            or dataset_type is Dataset_type.full_beginning:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(6, 120, 160, 3), strides=(1, 1, 1),
@@ -501,7 +508,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal):
         loss='categorical_crossentropy', metrics=["accuracy"],
     )
     model_vid.summary()
-    history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val))
+    history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val),
+                            callbacks=[RemoveGarbageCallback()])
 
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
@@ -669,5 +677,7 @@ def train_reduced_2():
 
 
 if __name__ == '__main__':
+    policy = mixed_precision.Policy('mixed_float16')
+    mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    train_normal()
+    train_reduced_2_beg_mid_end()
