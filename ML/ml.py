@@ -540,7 +540,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
             fold_no = fold_no + 1
             test_acc_per_fold.append(test_acc * 100)
             train_acc_per_fold.append(train_acc * 100)
-            tf.keras.backend.clear_session() # clear memory beetween folds
+            tf.keras.backend.clear_session()  # clear memory beetween folds
+            gc.collect()
         print(f'> Overall Test Accuracy for {name}: {np.mean(test_acc_per_fold)} (+- {np.std(test_acc_per_fold)})')
         print(f'> Overall Train Accuracy for {name}: {np.mean(train_acc_per_fold)} (+- {np.std(train_acc_per_fold)})')
         # save arrays
@@ -730,28 +731,37 @@ def train_reduced_2():
 
 
 def kfold_for_reduced_2_4_and_full():
-    print('Doing rgb full kfold...')
-    video_ml('video_dataset/rgb', 'video_rgb_full', dataset_type=Dataset_type.default_full_2_4,
-             input_shape=(40, 120, 160, 3))
-    print('Doing depth full kfold...')
-    video_ml('video_dataset/depth', 'video_depth_full', dataset_type=Dataset_type.default_full_2_4,
-             input_shape=(40, 120, 160, 3))
     print('Doing rgb reduced_2 kfold...')
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(20, 120, 160, 3))
     print('Doing depth reduced_2 kfold...')
-    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(20, 120, 160, 3))
     print('Doing rgb reduced_4 kfold...')
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(10, 120, 160, 3))
     print('Doing depth reduced_4 kfold...')
-    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+    video_ml('video_dataset/depth', 'video_depth_reduced_4', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(10, 120, 160, 3))
+    print('Doing rgb full kfold...')
+    video_ml('video_dataset/rgb', 'video_rgb_full', kfold=True, dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
+    print('Doing depth full kfold...')
+    video_ml('video_dataset/depth', 'video_depth_full', kfold=True, dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
+
+
+def train_full_with_full_model():
+    print('Doing rgb full with full model...')
+    video_ml('video_dataset/rgb', 'video_rgb_full_heavy_model', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
+    print('Doing depth full with full model...')
+    video_ml('video_dataset/depth', 'video_depth_full_heavy_model', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
 
 
 if __name__ == '__main__':
     policy = mixed_precision.Policy('mixed_float16')
     mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    kfold_for_reduced_2_4_and_full()
+    train_full_with_full_model()
