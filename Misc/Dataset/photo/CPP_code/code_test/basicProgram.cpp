@@ -1,3 +1,13 @@
+/**
+ * @file basicProgram.cpp
+ * @author David González León, Jade Gröli
+ * @brief Test of the realsense2 library in c++
+ * @version 0.1
+ * @date 19-11-2021
+ *
+ * @copyright Copyright (c) 2021
+ *
+ */
 #include <iostream>             // for cout
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
 
@@ -30,8 +40,7 @@ int main(int argc, char *argv[]) try {
 
    return EXIT_SUCCESS;
 } catch (const rs2::error &e) {
-   std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args()
-             << "):\n    " << e.what() << std::endl;
+   std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
    return EXIT_FAILURE;
 } catch (const std::exception &e) {
    std::cerr << e.what() << std::endl;

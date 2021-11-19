@@ -1,3 +1,7 @@
+"""photo mixer
+A script that takes the images in depth and rgb of a same shot and combines them into a single png file. The depth and
+rgb images need to be all in the same directory
+"""
 import os
 
 import matplotlib.image as mpimg

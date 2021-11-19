@@ -1,3 +1,11 @@
+#!/bin/bash
+#
+#    mover   -    separates the rgb and depth images into two separate datasets. The destination folders need to exist
+#                 already
+#
+#    usage:    mover
+#
+#  David González León, Jade Gröli    2021-11-19
 dir="double_image_dataset"
 cd $dir
 for i in $(seq 0 1 9); do
