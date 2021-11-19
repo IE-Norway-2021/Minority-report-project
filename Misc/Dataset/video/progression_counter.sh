@@ -1,3 +1,11 @@
+#!/bin/bash
+#
+#    progression_counter    -    counts the progress of the dataset over a fixed goal (in our case 6'000 sequences
+#                                of depth and rgb videos)
+#
+#    usage:    progression_counter
+#
+#  David González León, Jade Gröli    2021-11-19
 declare -i A
 cd Dataset
 cd depth

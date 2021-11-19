@@ -1,3 +1,8 @@
+"""Landmark_drawer
+This script allows a user to write on existing photos the landmarks for both hands using the mediapipe library
+
+To use, just make sure the DEST_PATH and OLD_PATH variables are correct for your use case
+"""
 import mediapipe as mp
 import os
 
