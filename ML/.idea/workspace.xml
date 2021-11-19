@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3946b04a-5939-4799-91db-4137607aaa2f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../src/real_time_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src/real_time_app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_full_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_2_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_2_end_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_2_middle_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_end_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_middle_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_depth_reduced_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_full_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_2_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_2_end_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_2_middle_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_beginning_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_end_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_middle_weights.h5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/video_rgb_reduced_weights.h5" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="20zqEiUoqVp3tMn4sBgrLNZFc8S" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3946b04a-5939-4799-91db-4137607aaa2f" name="Changes" comment="" />
+      <created>1637057657808</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1637057657808</updated>
+      <workItem from="1637057659964" duration="6000" />
+      <workItem from="1637057683167" duration="21000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

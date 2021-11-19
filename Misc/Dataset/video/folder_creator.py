@@ -1,3 +1,10 @@
+""" folder_creator
+This script creates the dataset folder. It contains 2 folders for the rgb and the depth sequences (format array). 
+In each of those file, there are as many files as there are gestures in the actions array.
+The root name needs to be changed as needed. If there is already a folder with the same name it runs into an error without
+impacting the folder that already exists. 
+"""
+
 import os
 import numpy as np
 

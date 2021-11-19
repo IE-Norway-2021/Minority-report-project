@@ -1,3 +1,8 @@
+"""video_taker
+This script allows a user to record a certain number of sequences (no_sequences) of a selected gesture in order
+to build and expand the dataset.
+The dataset folder needs to be created beforehand with the folder_creator script.
+"""
 import pyrealsense2 as rs
 import numpy as np
 import cv2
