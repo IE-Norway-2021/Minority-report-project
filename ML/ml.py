@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import multilabel_confusion_matrix
 from tensorflow.keras import mixed_precision
+from tensorflow.keras.utils import plot_model
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -760,8 +761,13 @@ def train_full_with_full_model():
              input_shape=(40, 120, 160, 3))
 
 
+def generate_model_plot(dataset_type, name, input_shape=(0, 0, 0, 0)):
+    model = getModel(dataset_type, input_shape=input_shape)
+    plot_model(model, to_file=f'output/{name}.png', rankdir='LR')
+
+
 if __name__ == '__main__':
     policy = mixed_precision.Policy('mixed_float16')
     mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    train_full_with_full_model()
+    generate_model_plot(Dataset_type.reduced_4, 'model')
