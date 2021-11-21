@@ -7,6 +7,8 @@ import tensorflow as tf
 from enum import Enum
 from sklearn.model_selection import KFold
 from tensorflow import keras
+from tensorflow.keras.layers import *
+from tensorflow.keras import Model
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 import numpy as np
@@ -281,6 +283,7 @@ class Dataset_type(Enum):
     full_beginning = 8
     reduced_2 = 9
     default_full_2_4 = 10
+    reduced_2_pi = 11
 
 
 def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
@@ -305,6 +308,26 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
             ]
         )
     elif dataset_type is Dataset_type.default_full_2_4:
+        vid_input = Input(input_shape)
+        x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(vid_input)
+        x = MaxPooling3D(padding="same")(x)
+        x = BatchNormalization()(x)
+        x = Conv3D(32, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
+        x = MaxPooling3D(padding="same")(x)
+        x = BatchNormalization()(x)
+        x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
+        x = MaxPooling3D(padding="same")(x)
+        x = BatchNormalization()(x)
+        x = Flatten()(x)
+        x = Dropout(0.2)(x)
+        x = Dense(120, activation='relu')(x)
+        x = Dense(60, activation='relu')(x)
+        x = Dense(30, activation='relu')(x)
+        x = Dropout(0.4)(x)
+        x = Dense(6, activation='softmax')(x)
+        model_vid = Model(vid_input, x, name='Custom_CNN')
+        return model_vid
+    elif dataset_type is Dataset_type.reduced_2_pi:
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
@@ -313,14 +336,10 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Conv3D(32, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
-                layers.Conv3D(16, 3, padding="same", activation="relu"),
-                layers.MaxPool3D(),
-                layers.BatchNormalization(),
                 layers.Flatten(),
                 layers.Dropout(0.2),
-                layers.Dense(120, activation='relu'),
-                layers.Dense(60, activation='relu'),
-                layers.Dense(30, activation='relu'),
+                layers.Dense(80, activation='relu'),
+                layers.Dense(40, activation='relu'),
                 layers.Dropout(0.4),
                 layers.Dense(6, activation='softmax'),
             ]
@@ -477,7 +496,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
                         if i % 2 == 0:
                             img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
                             sequence.append(img)
-                elif dataset_type is Dataset_type.default_full_2_4:
+                elif dataset_type is Dataset_type.default_full_2_4 or dataset_type is Dataset_type.reduced_2_pi:
                     for i in range(sequence_length):
                         if i % (sequence_length / input_shape[0]) == 0:
                             img = cv2.imread(os.path.join(dirpath, '{}.png'.format(i)))
@@ -523,7 +542,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
     if kfold:
         test_acc_per_fold = []
         train_acc_per_fold = []
-        epochs = 30
+        epochs = 80
         fold_no = 0
         kfold = KFold(n_splits=num_of_folds, shuffle=True)
         for train, test in kfold.split(X, y):
@@ -533,7 +552,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
                 loss='categorical_crossentropy', metrics=["accuracy"],
             )
             model_vid.summary()
-            history = model_vid.fit(X[train], y[train], epochs=epochs, verbose=1, validation_data=(X[test], y[test]))
+            history = model_vid.fit(X[train], y[train], epochs=epochs, verbose=0, validation_data=(X[test], y[test]),
+                                    callbacks=[RemoveGarbageCallback()])
             test_loss, test_acc = model_vid.evaluate(X[test], y[test])
             train_acc = history.history['accuracy'][epochs - 1]
             print("test accuracy in fold {} : {} %".format(fold_no, test_acc * 100))
@@ -763,11 +783,20 @@ def train_full_with_full_model():
 
 def generate_model_plot(dataset_type, name, input_shape=(0, 0, 0, 0)):
     model = getModel(dataset_type, input_shape=input_shape)
-    plot_model(model, to_file=f'output/{name}.png', rankdir='LR')
+    plot_model(model, to_file=f'output/{name}.png')
+
+
+def train_reduced_2_pi():
+    print('Doing rgb reduced 2 pi...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_pi', dataset_type=Dataset_type.reduced_2_pi,
+             input_shape=(20, 120, 160, 3))
+    print('Doing depth reduced 2 pi...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_pi', dataset_type=Dataset_type.reduced_2_pi,
+             input_shape=(20, 120, 160, 3))
 
 
 if __name__ == '__main__':
     policy = mixed_precision.Policy('mixed_float16')
     mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    generate_model_plot(Dataset_type.reduced_4, 'model')
+    kfold_for_reduced_2_4_and_full()
