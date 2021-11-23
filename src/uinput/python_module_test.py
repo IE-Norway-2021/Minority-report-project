@@ -10,7 +10,7 @@ if __name__ == '__main__':
     if fd < 0:
         print('Error fd wrong val')
         raise ValueError
-    for movement in [M_SCROLL_RIGHT, M_SCROLL_LEFT, M_SCROLL_UP, M_SCROLL_DOWN, M_ZOOM_IN, M_ZOOM_OUT]
+    for movement in [M_SCROLL_RIGHT, M_SCROLL_LEFT, M_SCROLL_UP, M_SCROLL_DOWN, M_ZOOM_IN, M_ZOOM_OUT]:
         print(f'Sending {movement}...')
         ret_val = send_movement(fd, movement)
         if ret_val < 0:

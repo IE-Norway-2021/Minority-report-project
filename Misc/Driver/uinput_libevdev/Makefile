@@ -4,26 +4,17 @@ CC= $(TOOL_PREFIX)-gcc
 OBJCOPY= $(TOOL_PREFIX)-objcopy
 LIBEVDEV= $(shell pkg-config --cflags --libs libevdev)
 
-CFLAGS = -Wall -Wextra -Werror -pedantic
-
-FILES_C=main_test.o uinput_api.o 
-
-PROGRAM_C=test_api 
-
+CFLAGS = -Wall -Wextra -pedantic
 
 .PHONY: all
-all: $(PROGRAM_C)
+all: module_python
 
-$(PROGRAM_C): $(FILES_C)
-	$(CC) $(LIBEVDEV) -pthread -g $(CFLAGS) -o $@ $^
-
-uinput_api.o : uinput_api.h
-main.o : uinput_api.h
-
-module: module_python
-
-module_python: 
-	./compile_module.sh
+module_python:
+	$(shell swig3.0 $(pkg-config --cflags --libs libevdev) -python python_module.i)
+	$(CC) -c -g $(LIBEVDEV) $(CFLAGS) python_module.c python_module_wrap.c -I/usr/include/python3.7m
+	$(LD) -shared python_module.o python_module_wrap.o -o _python_module.so
+	$(shell cp _python_module.so ../_python_module.so)
+	$(shell cp python_module.py ../python_module.py)
 
 %.o: %.c
 	$(CC) $(LIBEVDEV) -pthread -o $@ -I. -c $< -marm
@@ -32,6 +23,5 @@ module_python:
 #Clean
 clean :
 	rm -rf *.o *.bin
-	rm -f $(PROGRAM_C)
 	rm -rf python_module_wrap.c _python_module.so python_module.py ../_python_module.so ../python_module.py
 	rm -rf __pycache__ ../__pycache__
