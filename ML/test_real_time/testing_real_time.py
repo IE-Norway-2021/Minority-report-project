@@ -706,6 +706,40 @@ def main_app_reduced_2_full():
             layers.Dense(6, activation='softmax'),
         ]
     )
+
+    input_shape = (20,120,160,3)
+    model_rgb_semi_opti =  keras.Sequential( #pi version
+        [
+            layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
+                            padding='valid', activation='relu'),
+            layers.MaxPool3D(),
+            layers.Conv3D(32, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dropout(0.2),
+            layers.Dense(80, activation='relu'),
+            layers.Dense(40, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+        ]
+    )
+    model_depth_semi_opti =  keras.Sequential(
+        [
+            layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
+                            padding='valid', activation='relu'),
+            layers.MaxPool3D(),
+            layers.Conv3D(32, 3, padding="same", activation="relu"),
+            layers.MaxPool3D(),
+            layers.BatchNormalization(),
+            layers.Flatten(),
+            layers.Dropout(0.2),
+            layers.Dense(80, activation='relu'),
+            layers.Dense(40, activation='relu'),
+            layers.Dropout(0.4),
+            layers.Dense(6, activation='softmax'),
+        ]
+    )
     model_rgb.load_weights('video_rgb_reduced_2_weights.h5')
     model_depth.load_weights('video_depth_reduced_2_weights.h5')
     print('Finished loading models')

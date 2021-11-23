@@ -1,9 +1,10 @@
 # import tf.lite as tf
-# import tflite_runtime as tf
-import tensorflow as tf
-import pyrealsense2 as rs
+#import tensorflow as tf
+import tflite_runtime.interpreter as tflite
+import pyrealsense2.pyrealsense2 as rs
 import numpy as np
 import cv2
+import time
 
 img_height = 120
 img_width = 160
@@ -23,16 +24,20 @@ def resize_image(img):
 
 
 def main_app_reduced_2_full():
-
+    n = 3
     # Load TFLite model and allocate tensors.
-    interpreter_rgb = tf.lite.Interpreter(model_path="video_rgb_reduced_2_weights.tflite")
-    interpreter_depth = tf.lite.Interpreter(model_path="video_depth_reduced_2_weights.tflite")
+    interpreter_rgb =  tflite.Interpreter(model_path="video_rgb_reduced_2_pi_weights.tflite", num_threads=n)
+    interpreter_depth = tflite.Interpreter(model_path="video_depth_reduced_2_pi_weights.tflite", num_threads=n)
+
 
     # Get input and output tensors.
     input_details_rgb = interpreter_rgb.get_input_details()
     output_details_rgb = interpreter_rgb.get_output_details()
     input_details_depth = interpreter_depth.get_input_details()
     output_details_depth = interpreter_depth.get_output_details()
+    interpreter_rgb.allocate_tensors()
+    interpreter_depth.allocate_tensors()
+
     
     #model_rgb.load_weights('video_rgb_reduced_2_weights.h5')
     #model_depth.load_weights('video_depth_reduced_2_weights.h5')
@@ -94,11 +99,11 @@ def main_app_reduced_2_full():
                 continue
 
             # Convert images to numpy arrays
-            color_image = np.asanyarray(color_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data(), dtype=np.float32)
 
             color_image = resize_image(color_image)
             depth_image = resize_image(
-                cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
+                cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data(), np.float32), (640, 480),
                            interpolation=cv2.INTER_AREA))
             sequence_rgb.append(color_image)
             sequence_depth.append(depth_image)
@@ -108,14 +113,16 @@ def main_app_reduced_2_full():
                 sequence_rgb = sequence_rgb[-nb_of_frames:]
                 # pred_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
                 # pred_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
-
+                start = time.time()
                 interpreter_rgb.set_tensor(input_details_rgb[0]['index'], [sequence_rgb])
                 interpreter_depth.set_tensor(input_details_depth[0]['index'], [sequence_depth])
                 interpreter_rgb.invoke()
                 interpreter_depth.invoke()
 
-                pred_rgb = interpreter_rgb.get_tensor(output_details_rgb[0]['index'])
-                pref_depth = interpreter_depth.get_tensor(output_details_depth[0]['index'])
+                pred_rgb = interpreter_rgb.get_tensor(output_details_rgb[0]['index'])[0]
+                pred_depth = interpreter_depth.get_tensor(output_details_depth[0]['index'])[0]
+                end = time.time()
+                print(end-start)
 
                 print("the rgb output is {}".format(pred_rgb))
                 print("the depth output is {}".format(pred_depth))
