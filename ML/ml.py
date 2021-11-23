@@ -329,22 +329,6 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
         model_vid = Model(vid_input, x, name='Custom_CNN')
         return model_vid
     elif dataset_type is Dataset_type.reduced_2_pi:
-        # model_vid = keras.Sequential(
-        #     [
-        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
-        #                       padding='valid', activation='relu'),
-        #         layers.MaxPool3D(),
-        #         layers.Conv3D(32, 3, padding="same", activation="relu"),
-        #         layers.MaxPool3D(),
-        #         layers.BatchNormalization(),
-        #         layers.Flatten(),
-        #         layers.Dropout(0.2),
-        #         layers.Dense(80, activation='relu'),
-        #         layers.Dense(40, activation='relu'),
-        #         layers.Dropout(0.4),
-        #         layers.Dense(6, activation='softmax'),
-        #     ]
-        # )
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
@@ -353,14 +337,43 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Conv3D(32, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
-                quantize_annotate_layer(layers.Flatten()),
-                quantize_annotate_layer(layers.Dropout(0.2)),
-                quantize_annotate_layer(layers.Dense(80, activation='relu')),
-                quantize_annotate_layer(layers.Dense(40, activation='relu')),
-                quantize_annotate_layer(layers.Dropout(0.4)),
-                quantize_annotate_layer(layers.Dense(6, activation='softmax')),
+                layers.Flatten(),
+                layers.Dropout(0.2),
+                layers.Dense(80, activation='relu'),
+                layers.Dense(40, activation='relu'),
+                layers.Dropout(0.4),
+                layers.Dense(6, activation='softmax'),
             ]
         )
+        # model_vid = keras.Sequential(
+        #     [
+        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
+        #                       padding='valid', activation='relu'),
+        #         layers.MaxPool3D(),
+        #         layers.Conv3D(32, 3, padding="same", activation="relu"),
+        #         layers.MaxPool3D(),
+        #         layers.BatchNormalization(),
+        #         quantize_annotate_layer(layers.Flatten()),
+        #         quantize_annotate_layer(layers.Dropout(0.2)),
+        #         quantize_annotate_layer(layers.Dense(80, activation='relu')),
+        #         quantize_annotate_layer(layers.Dense(40, activation='relu')),
+        #         quantize_annotate_layer(layers.Dropout(0.4)),
+        #         quantize_annotate_layer(layers.Dense(6, activation='softmax')),
+        #     ]
+        # )
+        # model_vid = keras.Sequential( One convolution layer only is not enough for depth images, at least 2 for good results
+        #     [
+        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
+        #                       padding='valid', activation='relu'),
+        #         layers.MaxPool3D(),
+        #         layers.BatchNormalization(),
+        #         layers.Flatten(),
+        #         layers.Dropout(0.2),
+        #         layers.Dense(40, activation='relu'),
+        #         layers.Dropout(0.4),
+        #         layers.Dense(6, activation='softmax'),
+        #     ]
+        # )
     elif dataset_type is Dataset_type.reduced_4:
         model_vid = keras.Sequential(
             [
@@ -573,8 +586,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
                                     callbacks=[RemoveGarbageCallback()])
             test_loss, test_acc = model_vid.evaluate(X[test], y[test])
             train_acc = history.history['accuracy'][epochs - 1]
-            print("test accuracy in fold {} : {} %".format(fold_no+1, test_acc * 100))
-            print("train accuracy in fold {} : {} %".format(fold_no+1, train_acc * 100))
+            print("test accuracy in fold {} : {} %".format(fold_no + 1, test_acc * 100))
+            print("train accuracy in fold {} : {} %".format(fold_no + 1, train_acc * 100))
             fold_no = fold_no + 1
             test_acc_per_fold.append(test_acc * 100)
             train_acc_per_fold.append(train_acc * 100)
@@ -813,7 +826,7 @@ def train_reduced_2_pi():
 
 
 if __name__ == '__main__':
-    policy = mixed_precision.Policy('mixed_float16')
-    mixed_precision.set_global_policy(policy)
+    # policy = mixed_precision.Policy('mixed_float16')
+    # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
     train_reduced_2_pi()
