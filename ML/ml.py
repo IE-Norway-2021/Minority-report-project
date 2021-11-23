@@ -17,7 +17,6 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import multilabel_confusion_matrix
 from tensorflow.keras import mixed_precision
 from tensorflow.keras.utils import plot_model
-from tensorflow_model_optimization.quantization.keras import *
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -334,6 +333,7 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                               padding='valid', activation='relu'),
                 layers.MaxPool3D(),
+                layers.BatchNormalization(),
                 layers.Conv3D(32, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
@@ -829,4 +829,4 @@ if __name__ == '__main__':
     # policy = mixed_precision.Policy('mixed_float16')
     # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    train_reduced_2_pi()
+    train_full_with_full_model()
