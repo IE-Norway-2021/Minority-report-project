@@ -14,7 +14,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import to_categorical
-from sklearn.metrics import multilabel_confusion_matrix
+from sklearn import metrics
+from sklearn.metrics import classification_report
+import seaborn as sns
+import pandas as pd
 from tensorflow.keras import mixed_precision
 from tensorflow.keras.utils import plot_model
 
@@ -333,6 +336,7 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                               padding='valid', activation='relu'),
                 layers.MaxPool3D(),
+                layers.BatchNormalization(),
                 layers.Conv3D(32, 3, padding="same", activation="relu"),
                 layers.MaxPool3D(),
                 layers.BatchNormalization(),
@@ -344,6 +348,35 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Dense(6, activation='softmax'),
             ]
         )
+        # model_vid = keras.Sequential(
+        #     [
+        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
+        #                       padding='valid', activation='relu'),
+        #         layers.MaxPool3D(),
+        #         layers.Conv3D(32, 3, padding="same", activation="relu"),
+        #         layers.MaxPool3D(),
+        #         layers.BatchNormalization(),
+        #         quantize_annotate_layer(layers.Flatten()),
+        #         quantize_annotate_layer(layers.Dropout(0.2)),
+        #         quantize_annotate_layer(layers.Dense(80, activation='relu')),
+        #         quantize_annotate_layer(layers.Dense(40, activation='relu')),
+        #         quantize_annotate_layer(layers.Dropout(0.4)),
+        #         quantize_annotate_layer(layers.Dense(6, activation='softmax')),
+        #     ]
+        # )
+        # model_vid = keras.Sequential( One convolution layer only is not enough for depth images, at least 2 for good results
+        #     [
+        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
+        #                       padding='valid', activation='relu'),
+        #         layers.MaxPool3D(),
+        #         layers.BatchNormalization(),
+        #         layers.Flatten(),
+        #         layers.Dropout(0.2),
+        #         layers.Dense(40, activation='relu'),
+        #         layers.Dropout(0.4),
+        #         layers.Dense(6, activation='softmax'),
+        #     ]
+        # )
     elif dataset_type is Dataset_type.reduced_4:
         model_vid = keras.Sequential(
             [
@@ -542,7 +575,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
     if kfold:
         test_acc_per_fold = []
         train_acc_per_fold = []
-        epochs = 80
+        epochs = 100
         fold_no = 0
         kfold = KFold(n_splits=num_of_folds, shuffle=True)
         for train, test in kfold.split(X, y):
@@ -556,8 +589,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
                                     callbacks=[RemoveGarbageCallback()])
             test_loss, test_acc = model_vid.evaluate(X[test], y[test])
             train_acc = history.history['accuracy'][epochs - 1]
-            print("test accuracy in fold {} : {} %".format(fold_no, test_acc * 100))
-            print("train accuracy in fold {} : {} %".format(fold_no, train_acc * 100))
+            print("test accuracy in fold {} : {} %".format(fold_no + 1, test_acc * 100))
+            print("train accuracy in fold {} : {} %".format(fold_no + 1, train_acc * 100))
             fold_no = fold_no + 1
             test_acc_per_fold.append(test_acc * 100)
             train_acc_per_fold.append(train_acc * 100)
@@ -606,13 +639,31 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
         plt.legend(loc='upper right')
         plt.title('Training and Validation Loss')
         plt.savefig(f'output/{name}_loss_results.png')
+        plt.clf()
         np.save(f'output/{name}_training_history.npy', history.history)
         model_vid.save(f'output/{name}_weights.h5')
-        yhat = model_vid.predict(X_val)
-        ytrue = np.argmax(y_val, axis=1).tolist()
-        yhat = np.argmax(yhat, axis=1).tolist()
-        print(multilabel_confusion_matrix(ytrue, yhat))
-        np.save(f'output/{name}_confusion_matrix.npy', multilabel_confusion_matrix(ytrue, yhat))
+
+        # confusion matrix
+
+        test_loss, test_acc = model_vid.evaluate(X_val, y_val, verbose=2)
+        Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
+        cm = tf.math.confusion_matrix(y_val, Y_te)
+        acc = metrics.accuracy_score(y_val, Y_te)
+        print("test accuracy =", acc * 100, "%\n")
+        print(classification_report(y_val, Y_te))
+        con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
+        con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
+        classes = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+        con_mat_df = pd.DataFrame(con_mat_norm, index=classes, columns=classes)
+        plt.figure()
+        sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
+        plt.tight_layout()
+        plt.title('Convolution Neural Newtork')
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        plt.savefig(f'output/{name}_confusion_matrix.png')
+        plt.clf()
+
         del X_val
         del X_train
         del y_val
@@ -795,8 +846,30 @@ def train_reduced_2_pi():
              input_shape=(20, 120, 160, 3))
 
 
+def train_with_main_model():
+    print('Doing rgb reduced_2...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3))
+    print('Doing depth reduced_2 ...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3))
+    print('Doing rgb reduced_4 ...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(10, 120, 160, 3))
+    print('Doing depth reduced_4 ...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(10, 120, 160, 3))
+    print('Doing rgb full ...')
+    video_ml('video_dataset/rgb', 'video_rgb_full', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
+    print('Doing depth full ...')
+    video_ml('video_dataset/depth', 'video_depth_full', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3))
+
+
+
 if __name__ == '__main__':
-    policy = mixed_precision.Policy('mixed_float16')
-    mixed_precision.set_global_policy(policy)
+    # policy = mixed_precision.Policy('mixed_float16')
+    # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    kfold_for_reduced_2_4_and_full()
+    train_with_main_model()
