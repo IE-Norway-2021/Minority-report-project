@@ -28,7 +28,7 @@ img_width = 160
 batch_size = 4
 folder_name = 'video_test_dataset'
 split_value = 0.1
-EPOCHS = 300
+EPOCHS = 80
 num_of_folds = 10
 INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
@@ -645,16 +645,15 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
 
         # confusion matrix
 
-        test_loss, test_acc = model_vid.evaluate(X_val, y_val, verbose=2)
         Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
+        y_val = np.array(tf.math.argmax(y_val, 1))
         cm = tf.math.confusion_matrix(y_val, Y_te)
         acc = metrics.accuracy_score(y_val, Y_te)
         print("test accuracy =", acc * 100, "%\n")
         print(classification_report(y_val, Y_te))
         con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
         con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
-        classes = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
-        con_mat_df = pd.DataFrame(con_mat_norm, index=classes, columns=classes)
+        con_mat_df = pd.DataFrame(con_mat_norm, index=movements, columns=movements)
         plt.figure()
         sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
         plt.tight_layout()
@@ -867,9 +866,8 @@ def train_with_main_model():
              input_shape=(40, 120, 160, 3))
 
 
-
 if __name__ == '__main__':
-    # policy = mixed_precision.Policy('mixed_float16')
-    # mixed_precision.set_global_policy(policy)
+    policy = mixed_precision.Policy('mixed_float16')
+    mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
     train_with_main_model()
