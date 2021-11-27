@@ -44,9 +44,9 @@ sudo cp 98-uinput.rules /etc/udev/rules.d/98-uinput.rules
 
 sudo apt-get install python3 python3-dev pip raspberrypi-kernel-headers swig4.0
 
-pip3 install tensorflow opencv-python matplotlib numpy sklearn pillow pyrealsense2 
+pip3 install opencv-python matplotlib numpy sklearn pillow
 
-sudo apt-get install -y python-opengl
+sudo apt-get install -y python3-opengl
 sudo -H pip3 install pyopengl
 sudo -H pip3 install pyopengl_accelerate==3.1.3rc1
 echo 'Now please enable the OpenGL ine the advanced options (sudo raspi-config) and reboot the computer'

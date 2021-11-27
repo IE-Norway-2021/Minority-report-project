@@ -1,4 +1,4 @@
-TOOL_PREFIX	:= arm-linux-gnueabihf
+TOOL_PREFIX	:= aarch64-linux-gnu
 LD= $(TOOL_PREFIX)-ld
 CC= $(TOOL_PREFIX)-gcc
 OBJCOPY= $(TOOL_PREFIX)-objcopy
@@ -15,7 +15,7 @@ PROGRAM_C=test_api
 all: $(PROGRAM_C)
 
 $(PROGRAM_C): $(FILES_C)
-	$(CC) $(LIBEVDEV) -pthread -g $(CFLAGS) -o $@ $^
+	$(CC) -g $(CFLAGS) -o $@ $^ $(LIBEVDEV)
 
 uinput_api.o : uinput_api.h
 main.o : uinput_api.h
@@ -26,7 +26,7 @@ module_python:
 	./compile_module.sh
 
 %.o: %.c
-	$(CC) $(LIBEVDEV) -pthread -o $@ -I. -c $< -marm
+	$(CC) -o $@ -I. -c $< $(LIBEVDEV)
 
 .PHONE: clean
 #Clean
