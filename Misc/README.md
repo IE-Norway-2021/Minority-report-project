@@ -71,8 +71,12 @@ This folder contains the following directories/files :
 
 ```bash
 .
-└── procfs_test
+├── procfs_test
+└── uinput_libevdev
 ```
 
-The folder Driver contains tests of ways to implement the driver for the main app. It only contains a test that used the procfs module of the linux kernel, that was not conclusive.
+The folder Driver contains tests of ways to implement the driver for the main app. 
+
+- the folder procfs_test contains a small test of a driver using the procfs module
+- The folder uinput_libevdev contains a test of a python module using the libevdev library to access the uinput api.
 
