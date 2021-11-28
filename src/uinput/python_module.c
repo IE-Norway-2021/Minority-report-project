@@ -73,7 +73,7 @@ int init_uinput_device() {
       printf("init_uinput_device : Error while creating device\n");
       return -1;
    }
-   return 0;
+   return fd;
 }
 
 int send_movement(int fd, enum movements mouvement_id) {

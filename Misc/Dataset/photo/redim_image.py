@@ -1,3 +1,7 @@
+"""redim_image
+Redimensionates all images to 25% for all images in the selected directory and saves them in a new directory
+
+"""
 import os
 # importing Image class from PIL package
 from PIL import Image

@@ -1,3 +1,6 @@
+"""image_resizer
+This script resizes all the images contained in the OLD_PATH directory to a certain ratio (PERCENT).
+"""
 import os
 # importing Image class from PIL package
 from PIL import Image
@@ -6,8 +9,6 @@ import cv2
 OLD_PATH = 'Dataset/depth'
 DEST_PATH = OLD_PATH
 PERCENT = 25
-WIDTH = 160  # defines ratio
-HEIGHT = 120
 
 
 def redim_image(image, new_path):
