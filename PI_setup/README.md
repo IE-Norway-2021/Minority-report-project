@@ -2,7 +2,7 @@
 
 Before starting you need to have the following to be able to complete the installation : 
 
-- A raspberry pi with Raspbian OS (desktop version) (a clean instalation)
+- A raspberry pi with Raspbian OS 64 bit (desktop version) (a clean instalation)
 - An internet connection
 
 # Pre installation requirements : 
@@ -41,3 +41,7 @@ exit
 ```bash
 sudo reboot 0
 ```
+
+## Additional information
+
+- This instalation procedure has been tested only on the following raspios 64 bit version : `2021-10-30-raspios-bullseye-arm64` (that you can find in the following [link](https://downloads.raspberrypi.org/raspios_arm64/images/raspios_arm64-2021-11-08/))
