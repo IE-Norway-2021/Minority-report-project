@@ -507,7 +507,27 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
     return model_vid
 
 
-def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0, 0), kfold=False):
+def generateConfusionMatrix(model_vid, X_val, y_val, name):
+    Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
+    y_val = np.array(tf.math.argmax(y_val, 1))
+    cm = tf.math.confusion_matrix(y_val, Y_te)
+    acc = metrics.accuracy_score(y_val, Y_te)
+    print("test accuracy =", acc * 100, "%\n")
+    print(classification_report(y_val, Y_te))
+    con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
+    con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
+    con_mat_df = pd.DataFrame(con_mat_norm, index=movements, columns=movements)
+    plt.figure()
+    sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
+    plt.title('Convolution Neural Newtork')
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig(f'output/{name}_confusion_matrix.png', bbox_inches='tight')
+    plt.clf()
+
+
+def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0, 0), kfold=False,
+             only_confusion_matrix=False):
     print('Starting Image loading...')
     label_map = {label: num for num, label in enumerate(movements)}
     sequences, labels = [], []
@@ -575,18 +595,15 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
     if kfold:
         test_acc_per_fold = []
         train_acc_per_fold = []
-        epochs = 100
+        epochs = 30
         fold_no = 0
         kfold = KFold(n_splits=num_of_folds, shuffle=True)
         for train, test in kfold.split(X, y):
             model_vid = getModel(dataset_type, input_shape)
             model_vid.compile(
-                optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / epochs),
-                loss='categorical_crossentropy', metrics=["accuracy"],
+                optimizer=tf.keras.optimizers.Adam(), loss='categorical_crossentropy', metrics=["accuracy"],
             )
-            model_vid.summary()
-            history = model_vid.fit(X[train], y[train], epochs=epochs, verbose=0, validation_data=(X[test], y[test]),
-                                    callbacks=[RemoveGarbageCallback()])
+            history = model_vid.fit(X[train], y[train], epochs=epochs, verbose=0, validation_data=(X[test], y[test]))
             test_loss, test_acc = model_vid.evaluate(X[test], y[test])
             train_acc = history.history['accuracy'][epochs - 1]
             print("test accuracy in fold {} : {} %".format(fold_no + 1, test_acc * 100))
@@ -609,59 +626,43 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
         del X
         del y
         gc.collect()
+        if not only_confusion_matrix:
+            model_vid.compile(
+                optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
+                loss='categorical_crossentropy', metrics=["accuracy"],
+            )
+            model_vid.summary()
+            history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val),
+                                    callbacks=[RemoveGarbageCallback()])
 
-        model_vid.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS),
-            loss='categorical_crossentropy', metrics=["accuracy"],
-        )
-        model_vid.summary()
-        history = model_vid.fit(X_train, y_train, epochs=EPOCHS, verbose=1, validation_data=(X_val, y_val),
-                                callbacks=[RemoveGarbageCallback()])
+            acc = history.history['accuracy']
+            val_acc = history.history['val_accuracy']
+            loss = history.history['loss']
+            val_loss = history.history['val_loss']
 
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
+            epochs_range = range(EPOCHS)
 
-        epochs_range = range(EPOCHS)
+            plt.figure(figsize=(15, 15))
+            plt.plot(epochs_range, acc, label='Training Accuracy')
+            plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+            plt.legend(loc='lower right')
+            plt.title('Training and Validation Accuracy')
+            plt.savefig(f'output/{name}_accuracy_results.png')
+            plt.clf()
 
-        plt.figure(figsize=(15, 15))
-        plt.plot(epochs_range, acc, label='Training Accuracy')
-        plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-        plt.legend(loc='lower right')
-        plt.title('Training and Validation Accuracy')
-        plt.savefig(f'output/{name}_accuracy_results.png')
-        plt.clf()
-
-        plt.figure(figsize=(15, 15))
-        plt.plot(epochs_range, loss, label='Training Loss')
-        plt.plot(epochs_range, val_loss, label='Validation Loss')
-        plt.legend(loc='upper right')
-        plt.title('Training and Validation Loss')
-        plt.savefig(f'output/{name}_loss_results.png')
-        plt.clf()
-        np.save(f'output/{name}_training_history.npy', history.history)
-        model_vid.save(f'output/{name}_weights.h5')
-
+            plt.figure(figsize=(15, 15))
+            plt.plot(epochs_range, loss, label='Training Loss')
+            plt.plot(epochs_range, val_loss, label='Validation Loss')
+            plt.legend(loc='upper right')
+            plt.title('Training and Validation Loss')
+            plt.savefig(f'output/{name}_loss_results.png')
+            plt.clf()
+            np.save(f'output/{name}_training_history.npy', history.history)
+            model_vid.save(f'output/{name}_weights.h5')
+        else:
+            model_vid.load_weights(f'output/{name}_weights.h5')
         # confusion matrix
-
-        Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
-        y_val = np.array(tf.math.argmax(y_val, 1))
-        cm = tf.math.confusion_matrix(y_val, Y_te)
-        acc = metrics.accuracy_score(y_val, Y_te)
-        print("test accuracy =", acc * 100, "%\n")
-        print(classification_report(y_val, Y_te))
-        con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
-        con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
-        con_mat_df = pd.DataFrame(con_mat_norm, index=movements, columns=movements)
-        plt.figure()
-        sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
-        plt.tight_layout()
-        plt.title('Convolution Neural Newtork')
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
-        plt.savefig(f'output/{name}_confusion_matrix.png')
-        plt.clf()
+        generateConfusionMatrix(model_vid, X_val, y_val, name)
 
         del X_val
         del X_train
@@ -802,18 +803,18 @@ def train_reduced_2():
 
 
 def kfold_for_reduced_2_4_and_full():
-    print('Doing rgb reduced_2 kfold...')
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
-             input_shape=(20, 120, 160, 3))
-    print('Doing depth reduced_2 kfold...')
-    video_ml('video_dataset/depth', 'video_depth_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
-             input_shape=(20, 120, 160, 3))
     print('Doing rgb reduced_4 kfold...')
     video_ml('video_dataset/rgb', 'video_rgb_reduced_4', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(10, 120, 160, 3))
     print('Doing depth reduced_4 kfold...')
     video_ml('video_dataset/depth', 'video_depth_reduced_4', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(10, 120, 160, 3))
+    print('Doing rgb reduced_2 kfold...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3))
+    print('Doing depth reduced_2 kfold...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', kfold=True, dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3))
     print('Doing rgb full kfold...')
     video_ml('video_dataset/rgb', 'video_rgb_full', kfold=True, dataset_type=Dataset_type.default_full_2_4,
              input_shape=(40, 120, 160, 3))
@@ -866,8 +867,29 @@ def train_with_main_model():
              input_shape=(40, 120, 160, 3))
 
 
+def generate_main_confusion_matrices():
+    print('Doing rgb reduced_2...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3), only_confusion_matrix=True)
+    print('Doing depth reduced_2 ...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(20, 120, 160, 3), only_confusion_matrix=True)
+    print('Doing rgb reduced_4 ...')
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(10, 120, 160, 3), only_confusion_matrix=True)
+    print('Doing depth reduced_4 ...')
+    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(10, 120, 160, 3), only_confusion_matrix=True)
+    print('Doing rgb full ...')
+    video_ml('video_dataset/rgb', 'video_rgb_full', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3), only_confusion_matrix=True)
+    print('Doing depth full ...')
+    video_ml('video_dataset/depth', 'video_depth_full', dataset_type=Dataset_type.default_full_2_4,
+             input_shape=(40, 120, 160, 3), only_confusion_matrix=True)
+
+
 if __name__ == '__main__':
-    policy = mixed_precision.Policy('mixed_float16')
-    mixed_precision.set_global_policy(policy)
+    # policy = mixed_precision.Policy('mixed_float16')
+    # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    train_with_main_model()
+    kfold_for_reduced_2_4_and_full()
