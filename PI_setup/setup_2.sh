@@ -12,6 +12,9 @@ cd /usr/bin
 sudo rm python
 sudo ln -s /usr/local/bin/python3.7m python
 python --version
+sudo rm python3
+sudo ln -s /usr/local/bin/python3.7m python3
+python --version
 
 cd ~
 git clone --depth=1 -b v3.10.0 https://github.com/google/protobuf.git
@@ -22,9 +25,9 @@ make -j1
 sudo make install
 cd python
 export LD_LIBRARY_PATH=../src/.libs
-python3 setup.py build --cpp_implementation 
-python3 setup.py test --cpp_implementation
-sudo python3 setup.py install --cpp_implementation
+python setup.py build --cpp_implementation 
+python setup.py test --cpp_implementation
+sudo python setup.py install --cpp_implementation
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION_VERSION=3
 sudo ldconfig
@@ -46,7 +49,7 @@ cmake .. -DBUILD_PYTHON_BINDINGS=bool:true -DPYTHON_EXECUTABLE=$(which python3)
 make -j1
 sudo make install
 export PYTHONPATH=$PYTHONPATH:/usr/local/lib
-export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/pyrealsense2
+export PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/dist-packages/pyrealsense2
 source ~/.bashrc
 
 cd ~/Minority-report-project/PI_setup/
