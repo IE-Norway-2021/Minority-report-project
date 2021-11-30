@@ -2,22 +2,6 @@ echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 source ~/.bashrc
 
 cd ~
-wget https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz
-tar -zxvf Python-3.7.12.tgz
-mv Python-3.7.12 Python
-rm Python-3.7.12.tgz
-cd Python
-./configure --enable-optimizations
-sudo make altinstall
-cd /usr/bin
-sudo rm python
-sudo ln -s /usr/local/bin/python3.7 python
-python --version
-sudo rm python3
-sudo ln -s /usr/local/bin/python3.7 python3
-python --version
-
-cd ~
 git clone --depth=1 -b v3.10.0 https://github.com/google/protobuf.git
 cd protobuf
 ./autogen.sh
@@ -59,21 +43,29 @@ sudo adduser pi uinput
 sudo cp 98-uinput.rules /etc/udev/rules.d/98-uinput.rules
 
 sudo apt-get install pip raspberrypi-kernel-headers swig4.0
-python -m pip install opencv-python matplotlib numpy sklearn pillow
+pip install opencv-python matplotlib numpy sklearn pillow
 
 sudo apt-get install -y python3-opengl
-sudo python -m pip install pyopengl
-sudo python -m pip install pyopengl_accelerate
+sudo pip install pyopengl
+sudo pip install pyopengl_accelerate
 
-sudo python -m pip install numpy
+sudo pip install numpy
 sudo apt-get install -y gfortran libhdf5-dev libc-ares-dev libeigen3-dev libatlas-base-dev libopenblas-dev libblas-dev liblapack-dev
-sudo python -m pip install --upgrade setuptools
-sudo python -m pip install pybind11
-sudo python -m pip install Cython
-sudo python -m pip install h5py
-python -m pip install gdown
+sudo pip install --upgrade setuptools
+sudo pip install pybind11
+sudo pip install Cython
+sudo pip install h5py
+pip install gdown
+pip install build
+cd ~
+git clone https://github.com/tensorflow/io.git
+cd io/
+python -m build
+cd dist
+sudo pip install tensorflow_io_gcs_filesystem-0.22.0-cp39-cp39-linux_aarch64.whl
 
 cd ~
-gdown https://drive.google.com/uc?id=158xXoPWOyfNswDTaapyqpREq_CBk1O_G
-sudo python -m pip install tensorflow-2.5.0-cp37-cp37m-linux_aarch64.whl
-rm tensorflow-2.5.0-cp37-cp37m-linux_aarch64.whl
+sudo pip uninstall -y protobuf
+gdown https://drive.google.com/uc?id=1FdVZ1kX5QZgWk2SSgq31C2-CF95QhT58
+sudo pip install tensorflow-2.7.0-cp39-cp39-linux_aarch64.whl
+rm tensorflow-2.7.0-cp39-cp39-linux_aarch64.whl
