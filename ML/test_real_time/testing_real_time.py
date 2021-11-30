@@ -743,7 +743,6 @@ def main_app_reduced_2_full():
             layers.Dense(6, activation='softmax'),
         ]
     )
-    input_shape = (20,160,120,3)
     vid_input = Input(input_shape)
     x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(vid_input)
     x = MaxPooling3D(padding="same")(x)
