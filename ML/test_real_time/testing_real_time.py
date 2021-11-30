@@ -1,9 +1,12 @@
-import pyrealsense2 as rs
+import pyrealsense2.pyrealsense2 as rs
 import numpy as np
 import cv2
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+import time
+from tensorflow.keras.layers import *
+from tensorflow.keras import Model
 
 img_height = 120
 img_width = 160
@@ -663,7 +666,7 @@ def main_app_reduced_4_full():
 
 
 def main_app_reduced_2_full():
-    model_rgb = keras.Sequential(
+    model_rgb_old = keras.Sequential(
         [
             layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
                           padding='valid',
@@ -685,7 +688,7 @@ def main_app_reduced_2_full():
         ]
     )
 
-    model_depth = keras.Sequential(
+    model_depth_old = keras.Sequential(
         [
             layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
                           padding='valid',
@@ -740,6 +743,25 @@ def main_app_reduced_2_full():
             layers.Dense(6, activation='softmax'),
         ]
     )
+    vid_input = Input(input_shape)
+    x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(vid_input)
+    x = MaxPooling3D(padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(32, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
+    x = MaxPooling3D(padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
+    x = MaxPooling3D(padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Flatten()(x)
+    x = Dropout(0.2)(x)
+    x = Dense(120, activation='relu')(x)
+    x = Dense(60, activation='relu')(x)
+    x = Dense(30, activation='relu')(x)
+    x = Dropout(0.4)(x)
+    x = Dense(6, activation='softmax')(x)
+    model_rgb = Model(vid_input, x, name='rgb')
+    model_depth = Model(vid_input, x, name='depth')
     model_rgb.load_weights('video_rgb_reduced_2_weights.h5')
     model_depth.load_weights('video_depth_reduced_2_weights.h5')
     print('Finished loading models')
@@ -812,8 +834,11 @@ def main_app_reduced_2_full():
             if len(sequence_rgb) >= nb_of_frames:
                 sequence_depth = sequence_depth[-nb_of_frames:]
                 sequence_rgb = sequence_rgb[-nb_of_frames:]
+                start = time.time()
                 pred_rgb = model_rgb.predict(np.expand_dims(sequence_rgb, axis=0))[0]
                 pred_depth = model_depth.predict(np.expand_dims(sequence_depth, axis=0))[0]
+                end = time.time()
+                print(end-start)
                 all_valid = True
                 for test_res in [pred_rgb, pred_depth]:
                     if test_res[np.argmax(test_res)] < threshold:
@@ -839,4 +864,4 @@ def main_app_reduced_2_full():
 
 
 if __name__ == '__main__':
-    main_app_reduced_4_full()
+    main_app_reduced_2_full()
