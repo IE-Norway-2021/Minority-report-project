@@ -506,7 +506,7 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
         )
     return model_vid
 
-  
+
 def generateConfusionMatrix(model_vid, X_val, y_val, name):
     Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
     y_val = np.array(tf.math.argmax(y_val, 1))
@@ -600,8 +600,9 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
         kfold = KFold(n_splits=num_of_folds, shuffle=True)
         for train, test in kfold.split(X, y):
             model_vid = getModel(dataset_type, input_shape)
-            model_vid.compile(optimizer=tf.keras.optimizers.Adam(), loss='categorical_crossentropy', metrics=["accuracy"],
-            )
+            model_vid.compile(optimizer=tf.keras.optimizers.Adam(), loss='categorical_crossentropy',
+                              metrics=["accuracy"],
+                              )
             history = model_vid.fit(X[train], y[train], epochs=epochs, verbose=0, validation_data=(X[test], y[test]))
             test_loss, test_acc = model_vid.evaluate(X[test], y[test])
             train_acc = history.history['accuracy'][epochs - 1]
@@ -846,7 +847,6 @@ def train_reduced_2_pi():
              input_shape=(20, 120, 160, 3))
 
 
-
 def train_with_main_model():
     print('Doing rgb reduced_2...')
     video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.default_full_2_4,
@@ -889,8 +889,39 @@ def generate_main_confusion_matrices():
              input_shape=(40, 120, 160, 3), only_confusion_matrix=True)
 
 
+def generate_kfold_results_graph():
+    data_train = [[], [], [], [], [], [], [], [], [], []]
+    data_test = [[], [], [], [], [], [], [], [], [], []]
+
+    for result_name in ['kfold_video_rgb_full_train_acc.npy', 'kfold_video_depth_full_train_acc.npy',
+                        'kfold_video_rgb_reduced_2_train_acc.npy', 'kfold_video_depth_reduced_2_train_acc.npy',
+                        'kfold_video_rgb_reduced_4_train_acc.npy', 'kfold_video_depth_reduced_4_train_acc.npy']:
+        result = np.load(f'output/{result_name}')
+        for i in range(len(result)):
+            data_train[i].append(result[i])
+    for result_name in ['kfold_video_rgb_full_test_acc.npy', 'kfold_video_depth_full_test_acc.npy',
+                        'kfold_video_rgb_reduced_2_test_acc.npy', 'kfold_video_depth_reduced_2_test_acc.npy',
+                        'kfold_video_rgb_reduced_4_test_acc.npy', 'kfold_video_depth_reduced_4_test_acc.npy', ]:
+        result = np.load(f'output/{result_name}')
+        for i in range(len(result)):
+            data_test[i].append(result[i])
+    for data, name in [(data_train, "training"), (data_test, "testing")]:
+        plotdata = pd.DataFrame({"fold 1": data[0], "fold 2": data[1], "fold 3": data[2],
+                                 "fold 4": data[3], "fold 5": data[4],
+                                 "fold 6": data[5], "fold 7": data[6], "fold 8": data[7],
+                                 "fold 9": data[8], "fold 10": data[9]},
+                                index=["rgb_full", "depth_full", "rgb_reduced_2", "depth_reduced_2", "rgb_reduced_4",
+                                       "depth_reduced_4"])
+        sns.set_style("dark")
+        plotdata.plot(kind="bar", figsize=(10, 6)).legend(loc='upper right', ncol=5, bbox_to_anchor=(1, 1.2))
+        plt.title(f'Kfold results for {name}')
+        plt.xlabel("Dataset types")
+        plt.ylabel("Accuracy")
+        plt.savefig(f'kfold_{name}_graph.png', bbox_inches='tight')
+
+
 if __name__ == '__main__':
     # policy = mixed_precision.Policy('mixed_float16')
     # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    kfold_for_reduced_2_4_and_full()
+    generate_kfold_results_graph()
