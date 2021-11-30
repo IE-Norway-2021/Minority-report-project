@@ -43,3 +43,5 @@ src/.idea/
 .vscode/settings.json
 
 ML/.idea/
+src/video_depth_reduced_2_pi_weights.h5
+src/video_rgb_reduced_2_pi_weights.h5

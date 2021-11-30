@@ -711,11 +711,12 @@ def main_app_reduced_2_full():
     )
 
     input_shape = (20,120,160,3)
-    model_rgb_semi_opti =  keras.Sequential( #pi version
+    model_rgb =  keras.Sequential( #pi version
         [
             layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                             padding='valid', activation='relu'),
             layers.MaxPool3D(),
+            layers.BatchNormalization(),
             layers.Conv3D(32, 3, padding="same", activation="relu"),
             layers.MaxPool3D(),
             layers.BatchNormalization(),
@@ -727,11 +728,12 @@ def main_app_reduced_2_full():
             layers.Dense(6, activation='softmax'),
         ]
     )
-    model_depth_semi_opti =  keras.Sequential(
+    model_depth =  keras.Sequential(
         [
             layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                             padding='valid', activation='relu'),
             layers.MaxPool3D(),
+            layers.BatchNormalization(),
             layers.Conv3D(32, 3, padding="same", activation="relu"),
             layers.MaxPool3D(),
             layers.BatchNormalization(),
@@ -743,27 +745,9 @@ def main_app_reduced_2_full():
             layers.Dense(6, activation='softmax'),
         ]
     )
-    vid_input = Input(input_shape)
-    x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(vid_input)
-    x = MaxPooling3D(padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Conv3D(32, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
-    x = MaxPooling3D(padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(x)
-    x = MaxPooling3D(padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Flatten()(x)
-    x = Dropout(0.2)(x)
-    x = Dense(120, activation='relu')(x)
-    x = Dense(60, activation='relu')(x)
-    x = Dense(30, activation='relu')(x)
-    x = Dropout(0.4)(x)
-    x = Dense(6, activation='softmax')(x)
-    model_rgb = Model(vid_input, x, name='rgb')
-    model_depth = Model(vid_input, x, name='depth')
-    model_rgb.load_weights('video_rgb_reduced_2_weights.h5')
-    model_depth.load_weights('video_depth_reduced_2_weights.h5')
+
+    model_rgb.load_weights('video_rgb_reduced_2_pi_weights.h5')
+    model_depth.load_weights('video_depth_reduced_2_pi_weights.h5')
     print('Finished loading models')
     # Configure depth and color streams
     pipeline = rs.pipeline()

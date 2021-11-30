@@ -55,14 +55,16 @@ sudo pip install --upgrade setuptools
 sudo pip install pybind11
 sudo pip install Cython
 sudo pip install h5py
-pip install gdown
+sudo pip install gdown
 pip install build
 cd ~
 git clone https://github.com/tensorflow/io.git
 cd io/
 python -m build
+python setup.py -q bdist_wheel --project tensorflow_io_gcs_filesystem
 cd dist
 sudo pip install tensorflow_io_gcs_filesystem-0.22.0-cp39-cp39-linux_aarch64.whl
+sudo pip install tensorflow_io-0.22.0-cp39-cp39-linux_aarch64.whl
 
 cd ~
 sudo pip uninstall -y protobuf
