@@ -29,10 +29,10 @@ def resize_image(img):
 
 
 def main_app_reduced_2_tflite():
-    n = 3
+    n = 2
     # Load TFLite model and allocate tensors.
-    interpreter_rgb = tflite.Interpreter(model_path="video_rgb_reduced_2_pi_weights.tflite", num_threads=n)
-    interpreter_depth = tflite.Interpreter(model_path="video_depth_reduced_2_pi_weights.tflite", num_threads=n)
+    interpreter_rgb = tf.lite.Interpreter(model_path="video_rgb_reduced_2_weights.tflite", num_threads=n)
+    interpreter_depth = tf.lite.Interpreter(model_path="video_depth_reduced_2_weights.tflite", num_threads=n)
 
     # Get input and output tensors.
     input_details_rgb = interpreter_rgb.get_input_details()
@@ -126,9 +126,6 @@ def main_app_reduced_2_tflite():
                 pred_depth = interpreter_depth.get_tensor(output_details_depth[0]['index'])[0]
                 end = time.time()
                 print(end - start)
-
-                print("the rgb output is {}".format(pred_rgb))
-                print("the depth output is {}".format(pred_depth))
 
                 all_valid = True
                 for test_res in [pred_rgb, pred_depth]:
@@ -341,4 +338,4 @@ def main_app_reduced_2_tf():
 
 
 if __name__ == '__main__':
-    main_app_reduced_2_tf()
+    main_app_reduced_2_tflite()
