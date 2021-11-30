@@ -892,17 +892,17 @@ def generate_main_confusion_matrices():
 def generate_kfold_results_graph():
     data_train = [[], [], [], [], [], [], [], [], [], []]
     data_test = [[], [], [], [], [], [], [], [], [], []]
-
+    path = 'ML_video_results/Kfold'
     for result_name in ['kfold_video_rgb_full_train_acc.npy', 'kfold_video_depth_full_train_acc.npy',
                         'kfold_video_rgb_reduced_2_train_acc.npy', 'kfold_video_depth_reduced_2_train_acc.npy',
                         'kfold_video_rgb_reduced_4_train_acc.npy', 'kfold_video_depth_reduced_4_train_acc.npy']:
-        result = np.load(f'output/{result_name}')
+        result = np.load(f'{path}/{result_name}')
         for i in range(len(result)):
             data_train[i].append(result[i])
     for result_name in ['kfold_video_rgb_full_test_acc.npy', 'kfold_video_depth_full_test_acc.npy',
                         'kfold_video_rgb_reduced_2_test_acc.npy', 'kfold_video_depth_reduced_2_test_acc.npy',
                         'kfold_video_rgb_reduced_4_test_acc.npy', 'kfold_video_depth_reduced_4_test_acc.npy', ]:
-        result = np.load(f'output/{result_name}')
+        result = np.load(f'{path}/{result_name}')
         for i in range(len(result)):
             data_test[i].append(result[i])
     for data, name in [(data_train, "training"), (data_test, "testing")]:
@@ -917,7 +917,7 @@ def generate_kfold_results_graph():
         plt.title(f'Kfold results for {name}')
         plt.xlabel("Dataset types")
         plt.ylabel("Accuracy")
-        plt.savefig(f'kfold_{name}_graph.png', bbox_inches='tight')
+        plt.savefig(f'{path}/kfold_{name}_graph.png', bbox_inches='tight')
 
 
 if __name__ == '__main__':
