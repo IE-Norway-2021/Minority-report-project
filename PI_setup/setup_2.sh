@@ -1,6 +1,7 @@
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 source ~/.bashrc
 
+cd ~
 wget https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz
 tar -zxvf Python-3.7.12.tgz
 mv Python-3.7.12 Python
@@ -10,10 +11,10 @@ cd Python
 sudo make altinstall
 cd /usr/bin
 sudo rm python
-sudo ln -s /usr/local/bin/python3.7m python
+sudo ln -s /usr/local/bin/python3.7 python
 python --version
 sudo rm python3
-sudo ln -s /usr/local/bin/python3.7m python3
+sudo ln -s /usr/local/bin/python3.7 python3
 python --version
 
 cd ~
@@ -71,6 +72,8 @@ sudo python -m pip install pybind11
 sudo python -m pip install Cython
 sudo python -m pip install h5py
 python -m pip install gdown
+
+cd ~
 gdown https://drive.google.com/uc?id=158xXoPWOyfNswDTaapyqpREq_CBk1O_G
 sudo python -m pip install tensorflow-2.5.0-cp37-cp37m-linux_aarch64.whl
 rm tensorflow-2.5.0-cp37-cp37m-linux_aarch64.whl
