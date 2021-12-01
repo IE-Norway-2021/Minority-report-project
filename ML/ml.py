@@ -22,6 +22,8 @@ from tensorflow.keras.utils import plot_model
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+# PHOTO part
+
 img_height = 120
 img_width = 160
 batch_size = 4
@@ -43,14 +45,11 @@ def resize_image(img):
 
 
 class RemoveGarbageCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
+    @staticmethod
+    def on_epoch_end(epoch, logs=None):
         gc.collect()
 
 
-#                      METHOD 1
-# ==================================================== #
-#             Using dataset_from_directory             #
-# ==================================================== #
 def test():
     ds_train = tf.keras.preprocessing.image_dataset_from_directory(
         folder_name,
@@ -78,12 +77,6 @@ def test():
         validation_split=split_value,
         subset="validation",
     )
-    # ds_train = ds_train.map(augment)
-    # Custom Loops
-    # for epochs in range(10):
-    #     for x, y in ds_train:
-    #         # train here
-    #         pass
 
     model = keras.Sequential(
         [
@@ -268,6 +261,8 @@ def depth_new():
     model3.save('depth_new_weights.h5')
 
 
+# Video part
+
 movements = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out'])
 sequence_length = 40
 
@@ -308,7 +303,7 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-    elif dataset_type is Dataset_type.default_full_2_4:
+    elif dataset_type is Dataset_type.default_full_2_4:  # model used in the article
         vid_input = Input(input_shape)
         x = Conv3D(16, kernel_size=(3, 3, 4), strides=(1, 1, 1), padding='same', activation='relu')(vid_input)
         x = MaxPooling3D(padding="same")(x)
@@ -328,7 +323,7 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
         x = Dense(6, activation='softmax')(x)
         model_vid = Model(vid_input, x, name='Custom_CNN')
         return model_vid
-    elif dataset_type is Dataset_type.reduced_2_pi:
+    elif dataset_type is Dataset_type.reduced_2_pi:  # model used for faster inference on the raspberry pi
         model_vid = keras.Sequential(
             [
                 layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
@@ -346,35 +341,6 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
                 layers.Dense(6, activation='softmax'),
             ]
         )
-        # model_vid = keras.Sequential(
-        #     [
-        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
-        #                       padding='valid', activation='relu'),
-        #         layers.MaxPool3D(),
-        #         layers.Conv3D(32, 3, padding="same", activation="relu"),
-        #         layers.MaxPool3D(),
-        #         layers.BatchNormalization(),
-        #         quantize_annotate_layer(layers.Flatten()),
-        #         quantize_annotate_layer(layers.Dropout(0.2)),
-        #         quantize_annotate_layer(layers.Dense(80, activation='relu')),
-        #         quantize_annotate_layer(layers.Dense(40, activation='relu')),
-        #         quantize_annotate_layer(layers.Dropout(0.4)),
-        #         quantize_annotate_layer(layers.Dense(6, activation='softmax')),
-        #     ]
-        # )
-        # model_vid = keras.Sequential( One convolution layer only is not enough for depth images, at least 2 for good results
-        #     [
-        #         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=(20, 120, 160, 3), strides=(1, 1, 1),
-        #                       padding='valid', activation='relu'),
-        #         layers.MaxPool3D(),
-        #         layers.BatchNormalization(),
-        #         layers.Flatten(),
-        #         layers.Dropout(0.2),
-        #         layers.Dense(40, activation='relu'),
-        #         layers.Dropout(0.4),
-        #         layers.Dense(6, activation='softmax'),
-        #     ]
-        # )
     elif dataset_type is Dataset_type.reduced_4:
         model_vid = keras.Sequential(
             [
@@ -669,135 +635,55 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
         gc.collect()
 
 
-def video_rgb_ml():
-    video_ml('video_dataset/rgb', 'video_rgb')
-
-
-def video_depth_ml():
-    video_ml('video_dataset/depth', 'video_depth')
-
-
-def video_rgb_reduced_4_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.reduced_4)
-
-
-def video_depth_reduced_4_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.reduced_4)
-
-
-def video_rgb_reduced_4_beginning_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
-
-
-def video_depth_reduced_4_beginning_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
-
-
-def video_rgb_reduced_4_middle_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
-
-
-def video_depth_reduced_4_middle_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
-
-
-def video_rgb_reduced_4_end_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
-
-
-def video_depth_reduced_4_end_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
-
-
-def video_rgb_reduced_2_beginning_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
-
-
-def video_depth_reduced_2_beginning_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
-
-
-def video_rgb_reduced_2_middle_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
-
-
-def video_depth_reduced_2_middle_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
-
-
-def video_rgb_reduced_2_end_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
-
-
-def video_depth_reduced_2_end_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
-
-
-def video_rgb_full_beginning_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_full_beginning', dataset_type=Dataset_type.full_beginning)
-
-
-def video_depth_full_beginning_ml():
-    video_ml('video_dataset/depth', 'video_depth_full_beginning', dataset_type=Dataset_type.full_beginning)
-
-
-def video_rgb_reduced_2_ml():
-    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.reduced_2)
-
-
-def video_depth_reduced_2_ml():
-    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.reduced_2)
-
-
 def train_normal():
     print('Doing rgb training...')
-    video_rgb_ml()
+    video_ml('video_dataset/rgb', 'video_rgb')
     print('Doing depth training...')
-    video_depth_ml()
+    video_ml('video_dataset/depth', 'video_depth')
 
 
 def train_reduced_4():
     print('Doing rgb reduced_4 training...')
-    video_rgb_reduced_4_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4', dataset_type=Dataset_type.reduced_4)
     print('Doing depth reduced_4 training...')
-    video_depth_reduced_4_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_4', dataset_type=Dataset_type.reduced_4)
 
 
 def train_reduced_4_beg_mid_end():
     print('Doing rgb reduced_4 beginning training...')
-    video_rgb_reduced_4_beginning_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
     print('Doing depth reduced_4 beginning training...')
-    video_depth_reduced_4_beginning_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_beginning', dataset_type=Dataset_type.reduced_4_beginning)
     print('Doing rgb reduced_4 middle training...')
-    video_rgb_reduced_4_middle_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
     print('Doing depth reduced_4 middle training...')
-    video_depth_reduced_4_middle_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_middle', dataset_type=Dataset_type.reduced_4_middle)
     print('Doing rgb reduced_4 end training...')
-    video_rgb_reduced_4_end_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
     print('Doing depth reduced_4 end training...')
-    video_depth_reduced_4_end_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_4_end', dataset_type=Dataset_type.reduced_4_end)
 
 
 def train_reduced_2_beg_mid_end():
     print('Doing rgb reduced_2 beginning training...')
-    video_rgb_reduced_2_beginning_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
     print('Doing depth reduced_2 beginning training...')
-    video_depth_reduced_2_beginning_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_beginning', dataset_type=Dataset_type.reduced_2_beginning)
     print('Doing rgb reduced_2 middle training...')
-    video_rgb_reduced_2_middle_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
     print('Doing depth reduced_2 middle training...')
-    video_depth_reduced_2_middle_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_middle', dataset_type=Dataset_type.reduced_2_middle)
     print('Doing rgb reduced_2 end training...')
-    video_rgb_reduced_2_end_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
     print('Doing depth reduced_2 end training...')
-    video_depth_reduced_2_end_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_2_end', dataset_type=Dataset_type.reduced_2_end)
 
 
 def train_reduced_2():
     print('Doing rgb reduced_2 training...')
-    video_rgb_reduced_2_ml()
+    video_ml('video_dataset/rgb', 'video_rgb_reduced_2', dataset_type=Dataset_type.reduced_2)
     print('Doing depth reduced_2 training...')
-    video_depth_reduced_2_ml()
+    video_ml('video_dataset/depth', 'video_depth_reduced_2', dataset_type=Dataset_type.reduced_2)
 
 
 def kfold_for_reduced_2_4_and_full():
