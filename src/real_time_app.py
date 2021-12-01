@@ -1,5 +1,6 @@
 # import tf.lite as tf
 import tensorflow as tf
+from python_module import *
 # import tflite_runtime.interpreter as tflite
 import pyrealsense2.pyrealsense2 as rs
 import numpy as np
@@ -17,7 +18,9 @@ sequence_length = 10
 PERCENT = 25
 rate = 30
 
-actions = ['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out']
+actions = [('scroll_right', M_SCROLL_RIGTH), ('scroll_left', M_SCROLL_LEFT), ('scroll_up', M_SCROLL_UP),
+           ('scroll_down', M_SCROLL_DOWN),
+           ('zoom_in', M_ZOOM_IN), ('zoom_out', M_ZOOM_OUT)]
 
 
 def resize_image(img):
@@ -231,6 +234,11 @@ def thread_preduction_function(name):
 
 
 def main_app_reduced_2_tf():
+    fd = init_uinput_device()
+    if fd < 0:
+        print('Error fd wrong val')
+        raise ValueError
+    print('Finished creating uinput device')
     model_rgb.load_weights('video_rgb_reduced_2_pi_weights.h5')
     model_depth.load_weights('video_depth_reduced_2_pi_weights.h5')
     print('Finished loading models')
@@ -320,9 +328,11 @@ def main_app_reduced_2_tf():
                         if len(last_preds) >= validation_num:
                             result = all(elem == last_preds[0] for elem in last_preds)
                             if result:
-                                print(f'all agreed it was a {actions[np.argmax(last_preds[0])]}')
+                                action_name, enum_val = actions[np.argmax(last_preds[0])]
+                                print(f'all agreed it was a {action_name}')
+                                send_movement(fd, enum_val)
                                 mutex_preds.acquire()
-                                while not last_preds_queue.empty(): #clear queue
+                                while not last_preds_queue.empty():  # clear queue
                                     last_preds_queue.get()
                                 mutex_preds.release()
                                 sequence_rgb = []
@@ -335,6 +345,10 @@ def main_app_reduced_2_tf():
 
     finally:
         pipeline.stop()
+        ret_val = close_uinput_device(fd)
+        if ret_val < 0:
+            print('Error while closing device')
+            raise ValueError
 
 
 if __name__ == '__main__':
