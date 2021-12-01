@@ -3,7 +3,6 @@ This script resizes all the images contained in the OLD_PATH directory to a cert
 """
 import os
 # importing Image class from PIL package
-from PIL import Image
 import cv2
 
 OLD_PATH = 'Dataset/depth'

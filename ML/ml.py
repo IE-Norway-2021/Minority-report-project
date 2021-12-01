@@ -18,7 +18,6 @@ from sklearn import metrics
 from sklearn.metrics import classification_report
 import seaborn as sns
 import pandas as pd
-from tensorflow.keras import mixed_precision
 from tensorflow.keras.utils import plot_model
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -208,7 +207,6 @@ def depth_new():
     images, labels = [], []
     for action in actions:
         for dirpath, dirnames, files in os.walk(os.path.join(folder_name, action)):
-            action_set = []
             for file_name in files:
                 img = cv2.imread(os.path.join(folder_name, action, file_name))
                 if np.array(img).shape != (480, 640, 3):
@@ -510,7 +508,6 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
 def generateConfusionMatrix(model_vid, X_val, y_val, name):
     Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
     y_val = np.array(tf.math.argmax(y_val, 1))
-    cm = tf.math.confusion_matrix(y_val, Y_te)
     acc = metrics.accuracy_score(y_val, Y_te)
     print("test accuracy =", acc * 100, "%\n")
     print(classification_report(y_val, Y_te))

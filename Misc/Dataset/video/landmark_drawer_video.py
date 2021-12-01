@@ -9,8 +9,6 @@ import mediapipe as mp
 import os
 import time
 
-import numpy as np
-from PIL import Image
 import concurrent.futures
 import cv2
 import time
