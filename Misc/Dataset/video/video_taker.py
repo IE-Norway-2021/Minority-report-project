@@ -55,46 +55,48 @@ def video_taker():
     # Start streaming
     pipeline.start(config)
     print('starting the program...')
-    while True:
+    try:
+        while True:
+            
+            print("Choose num gesture or press q to quit : ")
+            for index in range(actions.size):
+                print('{} : {}'.format(actions[index], index))
+            action = input()
+            if action == 'q':
+                print('Quitting now...')
+                return
+            if (not action.isdigit()) or int(action) >= actions.size or int(action) < 0:
+                print('Wrong input please try again')
+                continue
+            action = int(action)
+            # gesture chosen, doing the video taking
 
-        print("Choose num gesture or press q to quit : ")
-        for index in range(actions.size):
-            print('{} : {}'.format(actions[index], index))
-        action = input()
-        if action == 'q':
-            print('Quitting now...')
-            return
-        if (not action.isdigit()) or int(action) >= actions.size or int(action) < 0:
-            print('Wrong input please try again')
-            continue
-        action = int(action)
-        # gesture chosen, doing the video taking
+            for sequence in range(no_sequences):
+                now = datetime.datetime.now()
+                sequence_folder_name = now.strftime("%Y-%m-%d-%H%M%S") + '_{}'.format(sequence)
+                input(f"Press enter to start collection {sequence + 1}")
+                os.makedirs(os.path.join(root_name, 'rgb', actions[action], sequence_folder_name))
+                os.makedirs(os.path.join(root_name, 'depth', actions[action], sequence_folder_name))
+                for frame_num in range(sequence_length):
+                    frames = pipeline.wait_for_frames()
+                    depth_frame = frames.get_depth_frame()
+                    color_frame = frames.get_color_frame()
+                    if not depth_frame or not color_frame:
+                        return
+                    colorizer = rs.colorizer()
+                    colorizer.set_option(rs.option.color_scheme, 0)
+                    # Convert images to numpy arrays
+                    depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
+                    color_image = np.asanyarray(color_frame.get_data())
 
-        for sequence in range(no_sequences):
-            now = datetime.datetime.now()
-            sequence_folder_name = now.strftime("%Y-%m-%d-%H%M%S") + '_{}'.format(sequence)
-            input(f"Press enter to start collection {sequence + 1}")
-            os.makedirs(os.path.join(root_name, 'rgb', actions[action], sequence_folder_name))
-            os.makedirs(os.path.join(root_name, 'depth', actions[action], sequence_folder_name))
-            for frame_num in range(sequence_length):
-                frames = pipeline.wait_for_frames()
-                depth_frame = frames.get_depth_frame()
-                color_frame = frames.get_color_frame()
-                if not depth_frame or not color_frame:
-                    return
-                colorizer = rs.colorizer()
-                colorizer.set_option(rs.option.color_scheme, 0)
-                # Convert images to numpy arrays
-                depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-                color_image = np.asanyarray(color_frame.get_data())
-
-                # save image
-                cv2.imwrite(f'{root_name}/rgb/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
-                            resize_image(color_image))
-                cv2.imwrite(f'{root_name}/depth/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
-                            resize_image(depth_image))
-            print('sequence finished')
-    pipeline.stop()
+                    # save image
+                    cv2.imwrite(f'{root_name}/rgb/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
+                                resize_image(color_image))
+                    cv2.imwrite(f'{root_name}/depth/{actions[action]}/{sequence_folder_name}/{frame_num}.png',
+                                resize_image(depth_image))
+                print('sequence finished')
+    finally:
+        pipeline.stop()
 
 
 # sequence folder name 21-10-12-hh-mm_num
