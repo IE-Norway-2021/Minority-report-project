@@ -847,5 +847,134 @@ def main_app_reduced_2_full():
         pipeline.stop()
 
 
+import pyarmnn as ann
+
+def main_app_reduced_2_tflite():
+    parserRGB = ann.ITfLiteParser()
+    parserDepth = ann.ITfLiteParser()
+    networkRGB = parserRGB.CreateNetworkFromBinaryFile('./video_rgb_pi.tflite')
+    networkDepth = parserDepth.CreateNetworkFromBinaryFile('./video_depth_pi.tflite')
+    input_binding_info_RGB = parserRGB.GetNetworkInputBindingInfo(0, 'model/input')
+    input_binding_info_Depth = parserDepth.GetNetworkInputBindingInfo(0, 'model/input')
+    optionsRGB = ann.CreationOptions()
+    runtimeRGB = ann.IRuntime(optionsRGB)
+    optionsDepth = ann.CreationOptions()
+    runtimeDepth = ann.IRuntime(optionsDepth)
+    # Backend choices earlier in the list have higher preference.
+    preferredBackends = [ann.BackendId('CpuAcc'), ann.BackendId('CpuRef')]
+
+    opt_network_RGB, messages = ann.Optimize(networkRGB, preferredBackends, runtimeRGB.GetDeviceSpec(), ann.OptimizerOptions())
+    # Load the optimized network into the runtime.
+    net_id, _ = runtimeRGB.LoadNetwork(opt_network_RGB)
+
+    opt_network_Depth, messages = ann.Optimize(networkDepth, preferredBackends, runtimeDepth    .GetDeviceSpec(), ann.OptimizerOptions())
+    # Load the optimized network into the runtime.
+    net_id, _ = runtimeDepth.LoadNetwork(opt_network_Depth)
+    print('Finished loading models')
+    # Configure depth and color streams
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    # Get device product line for setting a supporting resolution
+    pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+    pipeline_profile = config.resolve(pipeline_wrapper)
+    device = pipeline_profile.get_device()
+    device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+    found_rgb = False
+    for s in device.sensors:
+        if s.get_info(rs.camera_info.name) == 'RGB Camera':
+            found_rgb = True
+            break
+    if not found_rgb:
+        print("The demo requires Depth camera with Color sensor")
+        exit(0)
+
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, rate)
+
+    if device_product_line == 'L500':
+        config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, rate)
+    else:
+        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, rate)
+
+    colorizer = rs.colorizer()
+    colorizer.set_option(rs.option.color_scheme, 0)
+
+    print('Starting streaming...')
+
+    # Start streaming
+    pipeline.start(config)
+
+    frame_counter = 0
+    sequence_rgb = []
+    sequence_depth = []
+    threshold = 0.9
+    nb_of_frames = 20
+    last_preds = []
+    validation_num = 6
+
+    try:
+        while True:
+            try:
+                frames = pipeline.wait_for_frames()
+            except RuntimeError:
+                continue
+            frame_counter = (frame_counter + 1) % 2
+            if frame_counter != 0:
+                continue
+            depth_frame = frames.get_depth_frame()
+            color_frame = frames.get_color_frame()
+            if not depth_frame or not color_frame:
+                continue
+
+            # Convert images to numpy arrays
+            color_image = np.asanyarray(color_frame.get_data())
+
+            color_image = resize_image(color_image)
+            depth_image = resize_image(
+                cv2.resize(np.asanyarray(colorizer.colorize(depth_frame).get_data()), (640, 480),
+                           interpolation=cv2.INTER_AREA))
+            sequence_rgb.append(color_image)
+            sequence_depth.append(depth_image)
+
+            if len(sequence_rgb) >= nb_of_frames:
+                sequence_depth = sequence_depth[-nb_of_frames:]
+                sequence_rgb = sequence_rgb[-nb_of_frames:]
+                start = time.time()
+                input_tensors_RGB = ann.make_input_tensors([input_binding_info_RGB], [sequence_rgb])
+                input_tensors_Depth = ann.make_input_tensors([input_binding_info_Depth], [sequence_depth])
+                output_binding_info_rgb = parserRGB.GetNetworkOutputBindingInfo(0, 'model/output')
+                output_tensors_rgb = ann.make_output_tensors([outputs_binding_info_rgb])
+                output_binding_info_depth = parserDepth.GetNetworkOutputBindingInfo(0, 'model/output')
+                output_tensors_depth = ann.make_output_tensors([outputs_binding_info_depth])
+                runtimeRGB.EnqueueWorkload(0, input_tensors_RGB, output_tensors_rgb)
+                runtimeDepth.EnqueueWorkload(0, input_tensors_Depth, output_tensors_depth)
+                pred_rgb = ann.workload_tensors_to_ndarray(output_tensors_rgb)
+                pred_depth = ann.workload_tensors_to_ndarray(output_tensors_depth)
+                end = time.time()
+                print(end-start)
+                all_valid = True
+                for test_res in [pred_rgb, pred_depth]:
+                    if test_res[np.argmax(test_res)] < threshold:
+                        all_valid = False
+                        break
+                if not all_valid:
+                    continue
+                if np.argmax(pred_rgb) == np.argmax(pred_depth):
+                    last_preds.append(np.argmax(pred_depth))
+                    if len(last_preds) >= validation_num:
+                        result = all(elem == last_preds[0] for elem in last_preds)
+                        if result:
+                            print(f'Pred values : rgb={pred_rgb[np.argmax(pred_rgb)]}, depth={pred_depth[np.argmax(pred_depth)]}')
+                            last_preds.clear()
+                            sequence_rgb = sequence_rgb[-1:]
+                            sequence_depth = sequence_depth[-1:]
+                            print(f'all agreed it was a {actions[np.argmax(pred_rgb)]}')
+                        else:
+                            last_preds = last_preds[-(validation_num-1):]
+
+    finally:
+        pipeline.stop()
+
 if __name__ == '__main__':
-    main_app_reduced_2_full()
+    main_app_reduced_2_tflite()

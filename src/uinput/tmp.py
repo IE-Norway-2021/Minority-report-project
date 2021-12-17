@@ -20,6 +20,12 @@ if __name__ == '__main__':
          print('Error during zoom out')
          raise ValueError
       time.sleep(4)
+      print('Sending scroll right...')
+      ret_val = send_movement(fd, M_SCROLL_RIGHT)
+      if ret_val < 0:
+         print('Error during scroll right')
+         raise ValueError
+      time.sleep(4)
    ret_val = close_uinput_device(fd)
    if ret_val < 0:
       print('Error while closing device')
