@@ -19,6 +19,7 @@ from sklearn.metrics import classification_report
 import seaborn as sns
 import pandas as pd
 from tensorflow.keras.utils import plot_model
+import pickle
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -621,7 +622,8 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
             plt.title('Training and Validation Loss')
             plt.savefig(f'output/{name}_loss_results.png')
             plt.clf()
-            np.save(f'output/{name}_training_history.npy', history.history)
+            with open(f'output/{name}_training_history', 'wb') as file_pi:
+                pickle.dump(history.history, file_pi)
             model_vid.save(f'output/{name}_weights.h5')
         else:
             model_vid.load_weights(f'output/{name}_weights.h5')
@@ -798,13 +800,48 @@ def generate_kfold_results_graph():
         sns.set_style("dark")
         plotdata.plot(kind="bar", figsize=(10, 6)).legend(loc='upper right', ncol=5, bbox_to_anchor=(1, 1.2))
         plt.title(f'Kfold results for {name}')
+        plt.ylim([85, 100])
         plt.xlabel("Dataset types")
         plt.ylabel("Accuracy")
         plt.savefig(f'{path}/kfold_{name}_graph.png', bbox_inches='tight')
+
+
+def generateAccuracyLossGraphs():
+    data_rgb = []
+    data_depth = []
+    path = 'ML_video_results/Training'
+    for result_name in ['video_rgb_full_training_history', 'video_rgb_reduced_2_training_history',
+                        'video_rgb_reduced_4_training_history']:
+        result = pickle.load(open(f'{path}/{result_name}', "rb"))
+        data_rgb.append(result)
+    for result_name in ['video_depth_full_training_history', 'video_depth_reduced_2_training_history',
+                        'video_depth_reduced_4_training_history']:
+        result = pickle.load(open(f'{path}/{result_name}', "rb"))
+        data_depth.append(result)
+    for type, val_type, name in [('accuracy', 'val_accuracy', 'Accuracy'), ('loss', 'val_loss', 'Loss')]:
+        for stream_name, data in [('rgb', data_rgb), ('depth', data_depth)]:
+            fontsize = 26
+            plotdata = pd.DataFrame(
+                {f'{name} for proposed model/full': data[0][type],
+                 f'Validation {name} for proposed model/full': data[0][val_type],
+                 f'{name} for proposed model/1 of 2': data[1][type],
+                 f'Validation {name} for proposed model/1 of 2': data[1][val_type],
+                 f'{name} for proposed model/1 of 4': data[2][type],
+                 f'Validation {name} for proposed model/1 of 4': data[2][val_type]})
+            plotdata.plot(kind="line", figsize=(25, 13), lw=3, fontsize=fontsize - 3).legend(loc='upper right', ncol=2,
+                                                                                             bbox_to_anchor=(
+                                                                                                 0.97, 1.26),
+                                                                                             fontsize=fontsize)
+            plt.title(f'{name} and Validation {name} during training for {stream_name}',
+                      fontdict={'fontsize': fontsize})
+            plt.xlabel("Epochs", fontdict={'fontsize': fontsize})
+            plt.ylabel(name, fontdict={'fontsize': fontsize})
+            plt.savefig(f'{path}/training_{type}_{stream_name}_graph.png', bbox_inches='tight')
 
 
 if __name__ == '__main__':
     # policy = mixed_precision.Policy('mixed_float16')
     # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)
-    generate_kfold_results_graph()
+    model = getModel(Dataset_type.default_full_2_4, (10, 120, 160, 3))
+    model.summary()
