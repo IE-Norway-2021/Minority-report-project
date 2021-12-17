@@ -42,7 +42,7 @@ sudo addgroup uinput
 sudo adduser pi uinput
 sudo cp 98-uinput.rules /etc/udev/rules.d/98-uinput.rules
 
-sudo apt-get install pip raspberrypi-kernel-headers swig4.0
+sudo apt-get install -y pip raspberrypi-kernel-headers swig4.0
 pip install opencv-python matplotlib numpy sklearn pillow
 
 sudo apt-get install -y python3-opengl
@@ -63,8 +63,8 @@ cd io/
 python -m build
 python setup.py -q bdist_wheel --project tensorflow_io_gcs_filesystem
 cd dist
-sudo pip install tensorflow_io_gcs_filesystem-0.22.0-cp39-cp39-linux_aarch64.whl
-sudo pip install tensorflow_io-0.22.0-cp39-cp39-linux_aarch64.whl
+sudo pip install tensorflow_io_gcs_filesystem-*.*.*-cp39-cp39-linux_aarch64.whl
+sudo pip install tensorflow_io-*.*.*-cp39-cp39-linux_aarch64.whl
 
 cd ~
 sudo pip uninstall -y protobuf
