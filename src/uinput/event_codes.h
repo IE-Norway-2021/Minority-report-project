@@ -20,13 +20,13 @@
 #define KEY_PRESSED 1
 #define KEY_RELEASED 0
 
+// Define number of handled events by the module. When adding a new gesture this value needs to be updated
+#define NUMBER_OF_EVENTS_HANDLED 6
+
 #define ZOOM_IN KEY_KPPLUS
 #define ZOOM_OUT KEY_KPMINUS
 #define SCROLL_UP KEY_UP
 #define SCROLL_DOWN KEY_DOWN
 #define SCROLL_RIGHT KEY_RIGHT
 #define SCROLL_LEFT KEY_LEFT
-
-// Define number of handled events by the module and list of them for testing
-#define NUMBER_OF_EVENTS_HANDLED 6
 #endif

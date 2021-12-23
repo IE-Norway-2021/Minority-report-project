@@ -1,12 +1,11 @@
 /**
  * @file uinput_api.c
  * @author David González León, Jade Gröli
- * @brief
+ * @brief Defines all function allowing access to the uinput api of the linux kernel
  * @version 0.1
  * @date 02-11-2021
  *
  * @copyright Copyright (c) 2021
- *
  */
 
 #include <fcntl.h>
