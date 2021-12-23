@@ -1,7 +1,7 @@
 /**
  * @file python_module.c
  * @author David González León
- * @brief
+ * @brief Defines all functions and elements available in the python module
  * @version 0.1
  * @date 14-11-2021
  *
@@ -12,18 +12,41 @@
 #include "uinput_api.h"
 #include <stdio.h>
 #include <string.h>
-// Externe
-// enum for mouvements
+// External function/elements
+
+/**
+ * @brief Defines all movements available
+ *
+ */
 enum movements { M_SCROLL_RIGHT, M_SCROLL_LEFT, M_SCROLL_UP, M_SCROLL_DOWN, M_ZOOM_IN, M_ZOOM_OUT };
-// init
+
+/**
+ * @brief Initiates a new uinput device. Enables all predefined events
+ *
+ * @return an int corresponding to the fd of the created device, or -1 if there was an error
+ */
 int init_uinput_device();
-// passer le mouvement
+
+/**
+ * @brief Sends a movement as an input
+ *
+ * @param fd the id of the device
+ * @param mouvement_id The id of the mouvement to send
+ * @return 0 if everithing went well, -1 if there was an error
+ */
 int send_movement(int fd, enum movements mouvement_id);
-// fermer
+
+/**
+ * @brief Closes the given device.
+ *
+ * @param fd The id of the device to close
+ * @return 0 if the device was correctly closed, -1 if there was an error while closing
+ */
 int close_uinput_device(int fd);
 
-// interne
+// Internal functions (not available in the python module)
 int get_movement_value(enum movements mouvement_id);
+// TODO essayer d'extraire ce tableau dans event_codes.c en le marquant extern dans event_codes.h
 const int EVENT_TAB[] = {SCROLL_UP, SCROLL_DOWN, SCROLL_RIGHT, SCROLL_LEFT, ZOOM_IN, ZOOM_OUT};
 
 int get_movement_value(enum movements mouvement_id) {
