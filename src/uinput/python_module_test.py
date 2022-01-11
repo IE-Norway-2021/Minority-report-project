@@ -1,3 +1,8 @@
+"""python_module_test
+Tests that the python uinput module works correctly and sends the inputs to the kernel
+
+To use this, make sure to compile the python module first (make module). Then launch this python script. It will send all movements, and test if there was no error while sending.
+"""
 from python_module import *
 
 if __name__ == '__main__':

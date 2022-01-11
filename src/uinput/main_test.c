@@ -5,6 +5,8 @@
  * @version 0.1
  * @date 02-11-2021
  *
+ * @brief To use this file, first execute a "make" in the uinput folder, then execute the resulting file
+ *
  * @copyright Copyright (c) 2021
  *
  */
