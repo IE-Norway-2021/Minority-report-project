@@ -69,6 +69,7 @@ int uinput_emit_event(int uinput_fd, uint16_t event_type, uint16_t event_code, i
    }
    return 0;
 }
+
 int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t length) {
    int retval = 0;
    size_t i;

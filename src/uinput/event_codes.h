@@ -5,6 +5,8 @@
  * @version 0.1
  * @date 02-11-2021
  *
+ * @brief Defines all events linked to each gesture
+ *
  * @copyright Copyright (c) 2021
  *
  */
