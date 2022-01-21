@@ -21,7 +21,12 @@ The installation procedure for the Raspberry Pi is described in the [readme](PI_
 
 There are 4 folders in the project's root. The folders [Misc](Misc/README.md), [PI_setup](PI_setup/README.md) and [ML](ML/README.md) already contain readme describing the files in it. 
 
-The src folder contains the main code of the project. 
+The src folder contains the main code of the project. This code is split into two main parts : 
+
+- the python part, which handles the video feed and the prediction
+- the c part, which handles the passing of inputs to the linux kernel
+
+Both of these parts are joined by a python module generated using swing that serves the C code to python as a module.
 
 ## 1.3. Article about the project
 
@@ -32,3 +37,5 @@ This project was the main focus of an article that will soon be published in the
 To launch the application, first go to the [uinput folder](src/uinput) and run the following command `make module`. Then go back to the root of the src folder and run the real_time_app.py script (`python real_time_app.py`).
 
 To make sure the application will work you need to place the weights used in the app at the root of the src folder, and have a D435 camera connected to the raspberry pi.
+
+To generate the weights, use the [ml.py](ML/ml.py) script and change it so it executes the train_reduced_2_pi function. For the training to work, you need a dataset of sequences, which can be built using the [video taker script](Misc/Dataset/video/video_taker.py). 
