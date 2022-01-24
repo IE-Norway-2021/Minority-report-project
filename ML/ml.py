@@ -40,8 +40,8 @@ INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 PERCENT = 25
 
-# PHOTO par
-# Bellow are functions for training the models based on the image dataset. The "test" function is useful only for training, but does not allow to use 
+# PHOTO part
+# Below are functions for training the models based on the image dataset. The "test" function is useful only for training, but does not allow to use 
 # the trained models. The function rgb_new and depth_new use a new method for loading images that allows using the trained model in real time scenarios
 
 def resize_image(img):

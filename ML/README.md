@@ -28,7 +28,7 @@ The directory is structured in the following way
 └── tf_lite_converter.py
 ```
 
-## 1.1. Docker image tf gpu :
+## 1.1. Docker image tf GPU :
 
 This folder contains the necessary files to create a docker image to run the training. For more information please read the [readme file](Docker_image_tf_gpu/README.md) located in the folder.
 
@@ -48,9 +48,9 @@ This folder contains the results of the kfold training of the 3 main models pres
 
 This folder contains all the results from training the 3 main models presented in the article. For each model there is the weight resulting from the training, and the history of the training session.
 
-## 1.4. test real time : 
+## 1.4. Test real time : 
 
-This folder contains the code used to test the real time prediction. The main two files in this folder are [main_video.py](test_real_time/main_video.py), that contains the code used to acertain the test accuracy of the models, and [testing_real_time.py](test_real_time/testing_real_time.py), that contains the code used to create the final application, but without the inclusion of the driver.
+This folder contains the code used to test the real time prediction. The main two files in this folder are [main_video.py](test_real_time/main_video.py), that contains the code used to a certain the test accuracy of the models, and [testing_real_time.py](test_real_time/testing_real_time.py), that contains the code used to create the final application, but without the inclusion of the driver.
 
 ## 1.5. Root folder : 
 
@@ -58,8 +58,8 @@ The root folder ML contains 3 very important files :
 
 ### 1.5.1. [ML.py](ml.py) : 
 
-This file contains all the functions that allow the training of the models, aswell as the generation of various graphs based on the training history of the models.
+This file contains all the functions that allow the training of the models, as well as the generation of various graphs based on the training history of the models.
 
 ### 1.5.2. tf_lite_converter : 
 
-These two files contain the code used to create tf_lite weights for our models. In our case, the Raspberry pi 4 did not increase in effectiveness when using this technology, but it could be used on ohter platforms to increase the inference speed.
+These two files contain the code used to create tf_lite weights for our models. In our case, the Raspberry pi 4 did not increase in effectiveness when using this technology, but it could be used on other platforms to increase the inference speed.
