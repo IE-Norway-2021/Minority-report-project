@@ -28,7 +28,7 @@ sequence_length = 10
 PERCENT = 25
 rate = 30
 
-actions = [('scroll_right', M_SCROLL_RIGTH), ('scroll_left', M_SCROLL_LEFT), ('scroll_up', M_SCROLL_UP),
+actions = [('scroll_right', M_SCROLL_RIGHT), ('scroll_left', M_SCROLL_LEFT), ('scroll_up', M_SCROLL_UP),
            ('scroll_down', M_SCROLL_DOWN),
            ('zoom_in', M_ZOOM_IN), ('zoom_out', M_ZOOM_OUT)]
 
@@ -171,6 +171,7 @@ model_rgb = keras.Sequential(  # pi version
         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                       padding='valid', activation='relu'),
         layers.MaxPool3D(),
+        layers.BatchNormalization(),
         layers.Conv3D(32, 3, padding="same", activation="relu"),
         layers.MaxPool3D(),
         layers.BatchNormalization(),
@@ -187,6 +188,7 @@ model_depth = keras.Sequential(
         layers.Conv3D(16, kernel_size=(3, 3, 4), input_shape=input_shape, strides=(1, 1, 1),
                       padding='valid', activation='relu'),
         layers.MaxPool3D(),
+        layers.BatchNormalization(),
         layers.Conv3D(32, 3, padding="same", activation="relu"),
         layers.MaxPool3D(),
         layers.BatchNormalization(),
@@ -362,4 +364,4 @@ def main_app_reduced_2_tf():
 
 
 if __name__ == '__main__':
-    main_app_reduced_2_tflite()
+    main_app_reduced_2_tf()
