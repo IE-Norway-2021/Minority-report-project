@@ -1,7 +1,7 @@
 # 1. Misc folder
 
 - [1. Misc folder](#1-misc-folder)
-  - [1.1. Dataset](#11-dataset)
+  - [1.1. Dataset :](#11-dataset-)
     - [1.1.1. Photo :](#111-photo-)
     - [1.1.2. Video :](#112-video-)
   - [1.2. Driver](#12-driver)
@@ -20,7 +20,7 @@ The directory is structured in the following way
 
 Bellow is an explanation of the use of each file/directory.
 
-## 1.1. Dataset
+## 1.1. Dataset :
 
 The folder Dataset contains all code used for building the Dataset. It is split in two, one folder containing the code used for the picture dataset, the other for the video dataset.
 

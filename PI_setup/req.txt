@@ -1,7 +1,0 @@
-tensorflow==2.5.0
-opencv-python
-matplotlib 
-numpy 
-scikit-learn 
-pillow 
-pyrealsense2 

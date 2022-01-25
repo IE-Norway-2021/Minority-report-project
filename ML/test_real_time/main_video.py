@@ -1,3 +1,7 @@
+""" folder_creator
+This script tests the accuracy of the models.
+It is used only as a testing tool to ensure that the training accuracy is accurate
+"""
 import pyrealsense2 as rs
 import numpy as np
 import cv2

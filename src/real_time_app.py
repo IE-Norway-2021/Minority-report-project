@@ -1,3 +1,13 @@
+"""real_time_app
+Implements the main logic for the real time sequence prediction
+
+To use this, make sure to compile the python module first (make module). Then launch this python script. You need to have the camera connected to the device.
+It will then start the live prediction. You need to have the weights present as well.
+This file contains 2 versions of the algorithm :
+- One threaded using tf
+- One using tf_lite
+During development, tf_lite did not work reliably on the raspberry pi4, so the main working version is the one using tf
+"""
 # import tf.lite as tf
 import tensorflow as tf
 from python_module import *

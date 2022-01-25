@@ -1,9 +1,11 @@
 /**
  * @file main.c
  * @author David González León, Jade Gröli
- * @brief Test l'api uinput.
+ * @brief Tests of the uinput API.
  * @version 0.1
  * @date 02-11-2021
+ *
+ * @brief To use this file, first execute a "make" in the uinput folder, then execute the resulting file
  *
  * @copyright Copyright (c) 2021
  *
@@ -19,18 +21,48 @@
 #include <unistd.h>
 
 /**
- * @brief Nombre d'erreurs rencontrées pendant l'exécution du programme. S'il est >0, main retournera 1
- * //TODO: a mettre en anglais
+ * @brief Number of errors encoutered during the execution of the tests. If >0, main will return 1
+ *
  */
 int error_nb = 0;
-// Pour tester
+
 const int EVENT_TAB[] = {SCROLL_UP, SCROLL_DOWN, SCROLL_RIGHT, SCROLL_LEFT, ZOOM_IN, ZOOM_OUT};
 
-// definition of test functions
+/**
+ * Prototype of test functions. Each function tests a specific feature.
+ */
+
+/**
+ * @brief Tests opening and closing an fd.
+ * Error detected :
+ * - user did not have access to uinput, so open did not work. Fix : give user access to uinput. Check if it is definite, otherwise find another
+ *    way.
+ *    Error still here after compiling, so creating a group and adding user to it, and adding /dev/uinput to that group with a rule. Solution worked
+ */
 void test_uinput_open_close();
+
+/**
+ * @brief Tests that all events are correctly enabled (using the EVENT_TAB array to loop through each input)
+ *
+ */
 void test_uinput_enable_event();
+
+/**
+ * @brief Tests that a device is correctly created with all needed events enabled
+ *
+ */
 void test_uinput_create_device();
+
+/**
+ * @brief Tests that each event in EVENT_TAB is correctly emitted. Uses the libevdev library to read inputs from the kernel
+ *
+ */
 void test_uinput_emit_event_syn();
+
+/**
+ * @brief Tests that we can emit more than one event at a time. Not used so not tested
+ *
+ */
 void test_uinput_emit_event_combo();
 
 int main(int argc, char const *argv[]) {
@@ -41,7 +73,7 @@ int main(int argc, char const *argv[]) {
    test_uinput_emit_event_syn();
    test_uinput_emit_event_combo();
 
-   if (error_nb > 0) {
+   if (error_nb > 0) { // If there was an error inform
       printf("There were %d error!\n", error_nb);
       return 1;
    }
@@ -50,13 +82,8 @@ int main(int argc, char const *argv[]) {
    return 0;
 }
 
-/**
- * @brief
- * Error detected :
- * - user did not have access to uinput, so open did not work. Fix : give user access to uinput. Check if it is definite, otherwise find another
- *    way.
- *    Error still here after compiling, so creating a group and adding user to it, and adding /dev/uinput to that group with a rule. Solution worked
- */
+// Definition of test functions
+
 void test_uinput_open_close() {
    int fd = uinput_open();
    if (fd == -1) {

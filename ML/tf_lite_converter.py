@@ -1,3 +1,8 @@
+"""
+Converts a tensorflow model into a tensorflow lite model
+This conversion does not work optimally with models using 3D layers (such as CONV3D) for now. The performance with a tensorflow model
+are better than with the tf lite
+"""
 import tensorflow as tf
 import sys
 

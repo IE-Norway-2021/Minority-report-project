@@ -1,3 +1,7 @@
+"""
+This script contains the main code for training models using our dataset, and also functions that allow to create graphs from the results
+
+"""
 # Imports needed
 import os
 import gc
@@ -23,7 +27,7 @@ import pickle
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-# PHOTO part
+
 
 img_height = 120
 img_width = 160
@@ -36,6 +40,9 @@ INIT_LR = 0.00001
 actions = np.array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
 PERCENT = 25
 
+# PHOTO part
+# Below are functions for training the models based on the image dataset. The "test" function is useful only for training, but does not allow to use 
+# the trained models. The function rgb_new and depth_new use a new method for loading images that allows using the trained model in real time scenarios
 
 def resize_image(img):
     width = int(img.shape[1] * PERCENT / 100)
@@ -44,11 +51,6 @@ def resize_image(img):
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
     return resized
 
-
-class RemoveGarbageCallback(tf.keras.callbacks.Callback):
-    @staticmethod
-    def on_epoch_end(epoch, logs=None):
-        gc.collect()
 
 
 def test():
@@ -267,22 +269,32 @@ def depth_new():
 movements = np.array(['scroll_right', 'scroll_left', 'scroll_up', 'scroll_down', 'zoom_in', 'zoom_out'])
 sequence_length = 40
 
+# This class is used to make sure we clean all data beetween epochs to avoid memory issues
+class RemoveGarbageCallback(tf.keras.callbacks.Callback):
+    @staticmethod
+    def on_epoch_end(epoch, logs=None):
+        gc.collect()
 
+# This enum defines the different types of models used. 
+# the models marked as beginning, middle or end are based on an experiment we did that would cut the sequence in 3 parts and do predictions 
+# on each and combine all results to check for gestures. Did not work
 class Dataset_type(Enum):
-    Normal = 0
-    reduced_4 = 1
-    reduced_4_beginning = 2
+    Normal = 0 # A normal dataset, with reduced parameters compared to the model used in the article. this was our base model
+    reduced_4 = 1 # a model based on normal but only using 1 of every 4 frames
+    reduced_4_beginning = 2 
     reduced_4_middle = 3
     reduced_4_end = 4
     reduced_2_beginning = 5
     reduced_2_middle = 6
     reduced_2_end = 7
     full_beginning = 8
-    reduced_2 = 9
-    default_full_2_4 = 10
-    reduced_2_pi = 11
+    reduced_2 = 9 # a model based on normal but only using 1 of every 2 frames
+    default_full_2_4 = 10 # the model used in the article. the inputs in the getModel function allow to 
+                          # define for what type (fill, 1 of 2 or 1 of 4) of dataset it is going to be used
+    reduced_2_pi = 11 # the model used in pi. based on default_full_2_4 but with less layers
 
 
+# This function will return a model based on the dataset type given. for default_full_2_4 the input shape input needs to be given
 def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
     if dataset_type is Dataset_type.Normal:
         model_vid = keras.Sequential(
@@ -472,24 +484,10 @@ def getModel(dataset_type, input_shape=(0, 0, 0, 0)):
     return model_vid
 
 
-def generateConfusionMatrix(model_vid, X_val, y_val, name):
-    Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
-    y_val = np.array(tf.math.argmax(y_val, 1))
-    acc = metrics.accuracy_score(y_val, Y_te)
-    print("test accuracy =", acc * 100, "%\n")
-    print(classification_report(y_val, Y_te))
-    con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
-    con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
-    con_mat_df = pd.DataFrame(con_mat_norm, index=movements, columns=movements)
-    plt.figure()
-    sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
-    plt.title('Convolution Neural Newtork')
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.savefig(f'output/{name}_confusion_matrix.png', bbox_inches='tight')
-    plt.clf()
 
-
+# this is the main training function. It will load all required sequences from root, get a model based on dataset_type,
+# and either train the model or do a kfold training. We can also only generate a confusion matrix, it will in that case 
+# load weights of the model with the given name (assuming it has already been trained)
 def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0, 0), kfold=False,
              only_confusion_matrix=False):
     print('Starting Image loading...')
@@ -636,6 +634,7 @@ def video_ml(root, name, dataset_type=Dataset_type.Normal, input_shape=(0, 0, 0,
         del y_train
         gc.collect()
 
+# The following functions allow to train multiple models in a single function
 
 def train_normal():
     print('Doing rgb training...')
@@ -718,11 +717,6 @@ def train_full_with_full_model():
              input_shape=(40, 120, 160, 3))
 
 
-def generate_model_plot(dataset_type, name, input_shape=(0, 0, 0, 0)):
-    model = getModel(dataset_type, input_shape=input_shape)
-    plot_model(model, to_file=f'output/{name}.png')
-
-
 def train_reduced_2_pi():
     print('Doing rgb reduced 2 pi...')
     video_ml('video_dataset/rgb', 'video_rgb_reduced_2_pi', dataset_type=Dataset_type.reduced_2_pi,
@@ -774,6 +768,33 @@ def generate_main_confusion_matrices():
              input_shape=(40, 120, 160, 3), only_confusion_matrix=True)
 
 
+# This function will only plot the model using the keras function
+def generate_model_plot(dataset_type, name, input_shape=(0, 0, 0, 0)):
+    model = getModel(dataset_type, input_shape=input_shape)
+    plot_model(model, to_file=f'output/{name}.png')
+
+# This function will generate a confusion matrix based on the given parameters. Used in the video_ml function
+def generateConfusionMatrix(model_vid, X_val, y_val, name):
+    Y_te = np.array(tf.math.argmax(model_vid.predict(X_val), 1))
+    y_val = np.array(tf.math.argmax(y_val, 1))
+    acc = metrics.accuracy_score(y_val, Y_te)
+    print("test accuracy =", acc * 100, "%\n")
+    print(classification_report(y_val, Y_te))
+    con_mat = tf.math.confusion_matrix(labels=y_val, predictions=Y_te).numpy()
+    con_mat_norm = np.around(con_mat.astype('float') / con_mat.sum(axis=1)[:, np.newaxis], decimals=2)
+    con_mat_df = pd.DataFrame(con_mat_norm, index=movements, columns=movements)
+    plt.figure()
+    sns.heatmap(con_mat_df, annot=True, cmap="RdPu")
+    plt.title('Convolution Neural Newtork')
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig(f'output/{name}_confusion_matrix.png', bbox_inches='tight')
+    plt.clf()
+
+## These two function bellow are used to produce information for the article. 
+## Before using them please use this function train_with_main_model to generate results and do kfold training aswell 
+
+# This function generates a graph with the kfold results of the training. It assumes the results are already present
 def generate_kfold_results_graph():
     data_train = [[], [], [], [], [], [], [], [], [], []]
     data_test = [[], [], [], [], [], [], [], [], [], []]
@@ -806,6 +827,8 @@ def generate_kfold_results_graph():
         plt.savefig(f'{path}/kfold_{name}_graph.png', bbox_inches='tight')
 
 
+# This function generates the accuracy and loss graphs using the results of training. 
+# It assumes the results exists
 def generateAccuracyLossGraphs():
     data_rgb = []
     data_depth = []
@@ -840,6 +863,7 @@ def generateAccuracyLossGraphs():
 
 
 if __name__ == '__main__':
+    # uncomment here to improve performance on supported gpus
     # policy = mixed_precision.Policy('mixed_float16')
     # mixed_precision.set_global_policy(policy)
     os.makedirs("output", exist_ok=True)

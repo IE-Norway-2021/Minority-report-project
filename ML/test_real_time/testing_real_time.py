@@ -1,3 +1,9 @@
+""" folder_creator
+This script is the main testing script used to prepare the real time app.
+The main two functions that were the final ones before doing the final version located in the real_time_app.py script are main_app_reduced_4_full and
+main_app_reduced_2_full. Before this we tried a method to predict that would split each sequence in 3 parts and do a prediction on each part. Sadly, this did not
+work
+"""
 import pyrealsense2.pyrealsense2 as rs
 import numpy as np
 import cv2

@@ -1,12 +1,11 @@
 /**
  * @file uinput_api.c
  * @author David González León, Jade Gröli
- * @brief
+ * @brief Defines all function allowing access to the uinput api of the linux kernel
  * @version 0.1
  * @date 02-11-2021
  *
  * @copyright Copyright (c) 2021
- *
  */
 
 #include <fcntl.h>
@@ -70,6 +69,7 @@ int uinput_emit_event(int uinput_fd, uint16_t event_type, uint16_t event_code, i
    }
    return 0;
 }
+
 int uinput_emit_event_combo(int uinput_fd, const uint16_t *key_codes, size_t length) {
    int retval = 0;
    size_t i;

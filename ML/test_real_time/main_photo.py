@@ -1,3 +1,8 @@
+""" folder_creator
+This script tests the real time prediction on the image dataset. This dataset was only used as training and is not recommended to use.
+If you want to do image prediction, we advise you to use the code available for video creation (Misc/video/video_taker) and adapt it for building an image dataset. 
+We strongly advise you to take pictures as in a "rafale mode" to make the process faster
+"""
 import cv2
 import pyrealsense2 as rs
 import numpy as np
