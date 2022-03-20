@@ -20,10 +20,15 @@ $(PROGRAM_C): $(FILES_C)
 uinput_api.o : uinput_api.h
 main.o : uinput_api.h
 
-module: module_python
+module_pi: module_python_pi
 
-module_python: 
+module_python_pi: 
 	./compile_module.sh
+
+module_jn: module_python_jn
+
+module_python_jn:
+	./compile_module.sh -jn
 
 %.o: %.c
 	$(CC) -o $@ -I. -c $< $(LIBEVDEV)

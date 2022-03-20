@@ -53,3 +53,10 @@ pip3 install gdown
 gdown https://drive.google.com/uc?id=1DLk4Tjs8Mjg919NkDnYg02zEnbbCAzOz
 # install TensorFlow (± 12 min @1500 MHz)
 pip3 install tensorflow-2.4.1-cp36-cp36m-linux_aarch64.whl
+
+#Improve tensorflow
+sudo nvpmodel -m 0
+sudo jetson_clocks
+sudo apt-get purge libreoffice*
+sudo apt-get clean
+sudo apt-get -y autoremove
