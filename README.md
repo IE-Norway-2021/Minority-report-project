@@ -30,7 +30,7 @@ Both of these parts are joined by a python module generated using swing that ser
 
 ## 1.3. Article about the project
 
-This project was the main focus of an article that will soon be published in the IEEE Sensors journal. 
+This project was the main focus of an [article](https://ieeexplore.ieee.org/document/9796020) that was published in the IEEE Sensors Journal.
 
 ## 1.4. Using the application
 
